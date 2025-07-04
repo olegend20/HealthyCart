@@ -112,16 +112,35 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-2">
               Welcome back, {user?.firstName || "Friend"}!
             </h2>
-            <p className="text-blue-100 mb-4">
-              Ready to plan your next week of delicious, budget-friendly meals?
-            </p>
-            <Button 
-              className="bg-white text-primary font-semibold hover:bg-gray-100"
-              onClick={() => setShowMealPlanModal(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Meal Plan
-            </Button>
+            {(!householdMembers || householdMembers.length === 0) ? (
+              <>
+                <p className="text-blue-100 mb-4">
+                  Let's start by setting up your family profile to get personalized meal plans!
+                </p>
+                <Button 
+                  className="bg-white text-primary font-semibold hover:bg-gray-100"
+                  asChild
+                >
+                  <Link href="/household-setup">
+                    <Users className="h-4 w-4 mr-2" />
+                    Set Up Your Family
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-blue-100 mb-4">
+                  Ready to plan your next week of delicious, budget-friendly meals?
+                </p>
+                <Button 
+                  className="bg-white text-primary font-semibold hover:bg-gray-100"
+                  onClick={() => setShowMealPlanModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New Meal Plan
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
