@@ -72,11 +72,16 @@ export interface GeneratedMealPlanResponse {
 
 export async function generateCompleteMealPlan(request: MealPlanGenerationRequest): Promise<GeneratedMealPlanResponse> {
   try {
+    console.log("Starting meal plan generation for user:", request.userId);
+    
     // Get user's household and equipment data
     const [householdMembers, cookingEquipment] = await Promise.all([
       storage.getHouseholdMembers(request.userId),
       storage.getCookingEquipment(request.userId)
     ]);
+    
+    console.log("Found household members:", householdMembers?.length || 0);
+    console.log("Found cooking equipment:", cookingEquipment?.length || 0);
 
     if (householdMembers.length === 0) {
       throw new Error("No household members found. Please set up your household first.");
@@ -228,8 +233,17 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
     }
 
     // Create grocery list items
-    const groceryItems = [];
-    for (const [, ingredient] of ingredientMap) {
+    const groceryItems: Array<{
+      id: number;
+      name: string;
+      amount: number;
+      unit: string;
+      category: string;
+      estimatedPrice: number;
+      aisle?: string;
+    }> = [];
+    
+    for (const ingredient of Array.from(ingredientMap.values())) {
       const itemData: InsertGroceryListItem = {
         groceryListId: groceryList.id,
         name: ingredient.name,

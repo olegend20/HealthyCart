@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGenerator";
+import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGeneratorFixed";
 import { 
   insertHouseholdMemberSchema, 
   insertCookingEquipmentSchema, 

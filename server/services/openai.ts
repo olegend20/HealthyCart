@@ -120,6 +120,10 @@ IMPORTANT REQUIREMENTS:
 Please respond with a complete meal plan in JSON format with the exact structure specified in the TypeScript interface.`;
 
   try {
+    console.log("Sending request to OpenAI with model gpt-4o");
+    console.log("Request goals:", request.goals);
+    console.log("Request meal types:", request.mealTypes);
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -131,15 +135,24 @@ Please respond with a complete meal plan in JSON format with the exact structure
       max_tokens: 4000,
     });
 
+    console.log("OpenAI response received");
+    
     const content = response.choices[0].message.content;
     if (!content) {
       throw new Error("No content received from OpenAI");
     }
 
+    console.log("Parsing OpenAI response");
     const generatedPlan: GeneratedMealPlan = JSON.parse(content);
+    
+    console.log("Generated meal plan with", generatedPlan.meals?.length || 0, "meals");
     return generatedPlan;
   } catch (error) {
     console.error("Error generating meal plan:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
     throw new Error(`Failed to generate meal plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
