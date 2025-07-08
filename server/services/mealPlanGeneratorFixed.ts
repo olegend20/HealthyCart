@@ -125,8 +125,56 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
     const mealPlan = await storage.createMealPlan(mealPlanData);
     console.log("Created meal plan with ID:", mealPlan.id);
 
-    // For now, return a simple response with just the meal plan
-    // We can add recipe creation later once the basic flow works
+    // Create a basic grocery list for the meal plan
+    const groceryListData: InsertGroceryList = {
+      mealPlanId: mealPlan.id,
+      name: `${request.name} - Shopping List`,
+      totalCost: generatedPlan.totalEstimatedCost.toString()
+    };
+
+    const groceryList = await storage.createGroceryList(groceryListData);
+    console.log("Created grocery list with ID:", groceryList.id);
+
+    // Create some basic grocery items from the generated plan
+    const groceryItems: Array<{
+      id: number;
+      name: string;
+      amount: number;
+      unit: string;
+      category: string;
+      estimatedPrice: number;
+      aisle?: string;
+    }> = [];
+
+    // Add some basic items from the meal plan
+    if (generatedPlan.meals && generatedPlan.meals.length > 0) {
+      for (const meal of generatedPlan.meals.slice(0, 3)) { // Just take first 3 meals to avoid too many items
+        for (const ingredient of meal.ingredients.slice(0, 3)) { // First 3 ingredients per meal
+          const itemData: InsertGroceryListItem = {
+            groceryListId: groceryList.id,
+            name: ingredient.name,
+            amount: ingredient.amount.toString(),
+            unit: ingredient.unit,
+            category: ingredient.category,
+            estimatedPrice: (Math.random() * 5 + 1).toFixed(2), // Random price between $1-6
+            purchased: false,
+            aisle: getCategoryAisle(ingredient.category)
+          };
+
+          const item = await storage.createGroceryListItem(itemData);
+          groceryItems.push({
+            id: item.id,
+            name: item.name,
+            amount: parseFloat(item.amount || "0"),
+            unit: item.unit || "",
+            category: item.category || "",
+            estimatedPrice: parseFloat(item.estimatedPrice || "0"),
+            aisle: item.aisle || undefined
+          });
+        }
+      }
+    }
+
     return {
       mealPlan: {
         id: mealPlan.id,
@@ -138,10 +186,10 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
       },
       meals: [], // We'll implement meal creation in the next step
       groceryList: {
-        id: 0,
-        name: `${request.name} - Shopping List`,
-        totalCost: parseFloat(mealPlan.totalCost || "0"),
-        items: []
+        id: groceryList.id,
+        name: groceryList.name,
+        totalCost: parseFloat(groceryList.totalCost || "0"),
+        items: groceryItems
       },
       optimization: generatedPlan.ingredientOptimization || {
         sharedIngredients: [],
