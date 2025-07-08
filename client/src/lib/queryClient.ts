@@ -29,7 +29,23 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Build URL from query key parts
+    let url = queryKey[0] as string;
+    
+    // Handle dynamic URL parts for specific routes
+    if (queryKey.length > 1) {
+      if (url === "/api/grocery-lists/meal-plan") {
+        url = `${url}/${queryKey[1]}`;
+      } else if (url === "/api/grocery-lists") {
+        url = `${url}/${queryKey[1]}`;
+      } else if (url === "/api/meals") {
+        url = `${url}/${queryKey[1]}`;
+      } else if (url === "/api/recipes") {
+        url = `${url}/${queryKey[1]}`;
+      }
+    }
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 

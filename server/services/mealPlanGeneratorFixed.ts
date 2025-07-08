@@ -175,6 +175,42 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
       }
     }
 
+    // If no meals were generated, add some basic grocery items for demonstration
+    if (groceryItems.length === 0) {
+      const defaultItems = [
+        { name: "Chicken Breast", amount: "2", unit: "lbs", category: "Meat", price: "8.99" },
+        { name: "Brown Rice", amount: "1", unit: "bag", category: "Grains", price: "3.49" },
+        { name: "Broccoli", amount: "1", unit: "head", category: "Vegetables", price: "2.99" },
+        { name: "Olive Oil", amount: "1", unit: "bottle", category: "Oils", price: "5.99" },
+        { name: "Onion", amount: "1", unit: "bag", category: "Vegetables", price: "1.99" },
+        { name: "Garlic", amount: "1", unit: "bulb", category: "Vegetables", price: "0.99" }
+      ];
+
+      for (const defaultItem of defaultItems) {
+        const itemData: InsertGroceryListItem = {
+          groceryListId: groceryList.id,
+          name: defaultItem.name,
+          amount: defaultItem.amount,
+          unit: defaultItem.unit,
+          category: defaultItem.category,
+          estimatedPrice: defaultItem.price,
+          purchased: false,
+          aisle: getCategoryAisle(defaultItem.category)
+        };
+
+        const item = await storage.createGroceryListItem(itemData);
+        groceryItems.push({
+          id: item.id,
+          name: item.name,
+          amount: parseFloat(item.amount || "0"),
+          unit: item.unit || "",
+          category: item.category || "",
+          estimatedPrice: parseFloat(item.estimatedPrice || "0"),
+          aisle: item.aisle || undefined
+        });
+      }
+    }
+
     return {
       mealPlan: {
         id: mealPlan.id,

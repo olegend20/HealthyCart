@@ -224,6 +224,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/grocery-lists/meal-plan/:mealPlanId', isAuthenticated, async (req: any, res) => {
     try {
       const mealPlanId = parseInt(req.params.mealPlanId);
+      if (isNaN(mealPlanId)) {
+        return res.status(400).json({ message: "Invalid meal plan ID" });
+      }
       const groceryLists = await storage.getGroceryLists(mealPlanId);
       res.json(groceryLists);
     } catch (error) {
@@ -249,6 +252,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching grocery list:", error);
       res.status(500).json({ message: "Failed to fetch grocery list" });
+    }
+  });
+
+  // Recipe routes
+  app.get('/api/recipes/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid recipe ID" });
+      }
+      
+      const recipe = await storage.getRecipeWithIngredients(id);
+      
+      if (!recipe) {
+        return res.status(404).json({ message: "Recipe not found" });
+      }
+
+      res.json(recipe);
+    } catch (error) {
+      console.error("Error fetching recipe:", error);
+      res.status(500).json({ message: "Failed to fetch recipe" });
+    }
+  });
+
+  // Meal routes
+  app.get('/api/meals/:mealPlanId', isAuthenticated, async (req: any, res) => {
+    try {
+      const mealPlanId = parseInt(req.params.mealPlanId);
+      if (isNaN(mealPlanId)) {
+        return res.status(400).json({ message: "Invalid meal plan ID" });
+      }
+      
+      const meals = await storage.getMeals(mealPlanId);
+      res.json(meals);
+    } catch (error) {
+      console.error("Error fetching meals:", error);
+      res.status(500).json({ message: "Failed to fetch meals" });
     }
   });
 
