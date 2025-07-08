@@ -90,6 +90,9 @@ export default function Home() {
               <Link href="/household-setup" className="text-gray-500 hover:text-gray-700">
                 Profile
               </Link>
+              <Link href="/feature-tracker" className="text-gray-500 hover:text-gray-700">
+                Features
+              </Link>
             </nav>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon">

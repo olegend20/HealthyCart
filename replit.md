@@ -112,6 +112,19 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 08, 2025. Household member selection and meal planning workflow redesign
+  - Implemented household member selection for meal plans
+  - Added HouseholdMemberSelector component with multi-select functionality
+  - Enhanced MealPlanModal to include member selection with validation
+  - Created meal_plan_members table for associating members with meal plans
+  - Updated API to handle selected members in meal plan generation
+  - Enabled first feature in tracker: "Household Member Selection" 
+  - Identified fundamental issues with current meal planning flow
+  - Created comprehensive design document for proper workflow
+  - User should create meal plan → generate individual recipes → approve/reject → finalize → create grocery list
+  - Current implementation skips individual recipe generation and approval steps
+  - Created feature tracker with toggleable features for incremental implementation
+
 - July 03, 2025. Initial setup
 
 ## User Preferences

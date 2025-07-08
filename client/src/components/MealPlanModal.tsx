@@ -14,6 +14,7 @@ import { CalendarIcon, Bot, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import HouseholdMemberSelector from "@/components/HouseholdMemberSelector";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +39,8 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
     budget: '',
     startDate: new Date(),
     goals: [] as string[],
-    mealTypes: ['dinner'] as string[]
+    mealTypes: ['dinner'] as string[],
+    selectedMembers: [] as number[]
   });
 
   const generateMealPlanMutation = useMutation({
@@ -82,7 +84,8 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
       budget: '',
       startDate: new Date(),
       goals: [],
-      mealTypes: ['dinner']
+      mealTypes: ['dinner'],
+      selectedMembers: [] as number[]
     });
   };
 
@@ -102,6 +105,15 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
       toast({
         title: "Setup Required",
         description: "Please add household members first in the Profile section.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.selectedMembers.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select at least one household member for this meal plan.",
         variant: "destructive",
       });
       return;
@@ -283,6 +295,15 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
               ))}
             </div>
           </div>
+
+          {/* Household Member Selection */}
+          <HouseholdMemberSelector
+            householdMembers={householdMembers}
+            selectedMembers={formData.selectedMembers}
+            onSelectionChange={(memberIds) => 
+              setFormData(prev => ({ ...prev, selectedMembers: memberIds }))
+            }
+          />
 
           {(restrictions.length > 0 || allergies.length > 0) && (
             <div>

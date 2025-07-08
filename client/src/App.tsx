@@ -10,6 +10,7 @@ import Home from "@/pages/Home";
 import HouseholdSetup from "@/pages/HouseholdSetup";
 import MealPlanGenerator from "@/pages/MealPlanGenerator";
 import GroceryList from "@/pages/GroceryList";
+import FeatureTracker from "@/pages/FeatureTracker";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/household-setup" component={HouseholdSetup} />
           <Route path="/meal-plan-generator" component={MealPlanGenerator} />
           <Route path="/grocery-list/:id" component={GroceryList} />
+          <Route path="/feature-tracker" component={FeatureTracker} />
           <Route path="/recipes" component={() => <div className="p-8"><h1 className="text-2xl font-bold">Recipes</h1><p>Recipe browsing coming soon!</p></div>} />
           <Route path="/grocery-lists" component={() => <div className="p-8"><h1 className="text-2xl font-bold">Grocery Lists</h1><p>Grocery list management coming soon!</p></div>} />
         </>

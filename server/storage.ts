@@ -9,6 +9,7 @@ import {
   groceryLists,
   groceryListItems,
   nutritionGoals,
+  mealPlanMembers,
   type User,
   type UpsertUser,
   type HouseholdMember,
@@ -29,6 +30,7 @@ import {
   type InsertGroceryListItem,
   type NutritionGoal,
   type InsertNutritionGoal,
+  type MealPlanMember,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, like } from "drizzle-orm";
@@ -55,6 +57,11 @@ export interface IStorage {
   createMealPlan(mealPlan: InsertMealPlan): Promise<MealPlan>;
   updateMealPlan(id: number, updates: Partial<MealPlan>): Promise<MealPlan>;
   deleteMealPlan(id: number): Promise<void>;
+  
+  // Meal plan members
+  getMealPlanMembers(mealPlanId: number): Promise<MealPlanMember[]>;
+  addMealPlanMembers(mealPlanId: number, memberIds: number[]): Promise<void>;
+  removeMealPlanMembers(mealPlanId: number): Promise<void>;
   
   // Recipes
   getRecipes(limit?: number, offset?: number): Promise<Recipe[]>;
@@ -362,6 +369,28 @@ export class DatabaseStorage implements IStorage {
 
   async deleteNutritionGoal(id: number): Promise<void> {
     await db.delete(nutritionGoals).where(eq(nutritionGoals.id, id));
+  }
+
+  // Meal plan members
+  async getMealPlanMembers(mealPlanId: number): Promise<MealPlanMember[]> {
+    return await db.select()
+      .from(mealPlanMembers)
+      .where(eq(mealPlanMembers.mealPlanId, mealPlanId));
+  }
+
+  async addMealPlanMembers(mealPlanId: number, memberIds: number[]): Promise<void> {
+    if (memberIds.length === 0) return;
+    
+    const memberData = memberIds.map(memberId => ({
+      mealPlanId,
+      householdMemberId: memberId
+    }));
+    
+    await db.insert(mealPlanMembers).values(memberData);
+  }
+
+  async removeMealPlanMembers(mealPlanId: number): Promise<void> {
+    await db.delete(mealPlanMembers).where(eq(mealPlanMembers.mealPlanId, mealPlanId));
   }
 }
 

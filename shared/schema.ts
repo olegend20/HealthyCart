@@ -69,7 +69,7 @@ export const mealPlans = pgTable("meal_plans", {
   endDate: timestamp("end_date").notNull(),
   budget: decimal("budget", { precision: 10, scale: 2 }),
   goals: jsonb("goals").$type<string[]>().default([]),
-  status: varchar("status").default("active"), // 'active', 'completed', 'draft'
+  status: varchar("status").default("planning"), // 'planning', 'active', 'completed', 'archived'
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -169,6 +169,14 @@ export const nutritionGoals = pgTable("nutrition_goals", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Meal Plan Members (for household member selection)
+export const mealPlanMembers = pgTable("meal_plan_members", {
+  id: serial("id").primaryKey(),
+  mealPlanId: integer("meal_plan_id").references(() => mealPlans.id, { onDelete: "cascade" }).notNull(),
+  householdMemberId: integer("household_member_id").references(() => householdMembers.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   householdMembers: many(householdMembers),
@@ -198,6 +206,12 @@ export const mealPlansRelations = relations(mealPlans, ({ one, many }) => ({
   }),
   meals: many(meals),
   groceryLists: many(groceryLists),
+  mealPlanMembers: many(mealPlanMembers),
+}));
+
+export const mealPlanMembersRelations = relations(mealPlanMembers, ({ one }) => ({
+  mealPlan: one(mealPlans, { fields: [mealPlanMembers.mealPlanId], references: [mealPlans.id] }),
+  householdMember: one(householdMembers, { fields: [mealPlanMembers.householdMemberId], references: [householdMembers.id] }),
 }));
 
 export const recipesRelations = relations(recipes, ({ many }) => ({
@@ -275,6 +289,9 @@ export type GroceryListItem = typeof groceryListItems.$inferSelect;
 
 export type InsertNutritionGoal = typeof nutritionGoals.$inferInsert;
 export type NutritionGoal = typeof nutritionGoals.$inferSelect;
+
+export type InsertMealPlanMember = typeof mealPlanMembers.$inferInsert;
+export type MealPlanMember = typeof mealPlanMembers.$inferSelect;
 
 // Zod schemas
 export const insertHouseholdMemberSchema = createInsertSchema(householdMembers).omit({

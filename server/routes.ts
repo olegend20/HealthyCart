@@ -151,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/meal-plans/generate', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { name, duration, budget, goals, mealTypes, startDate } = req.body;
+      const { name, duration, budget, goals, mealTypes, startDate, selectedMembers } = req.body;
       
       const request: MealPlanGenerationRequest = {
         userId,
@@ -164,12 +164,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const generatedPlan = await generateCompleteMealPlan(request);
+      
+      // Add selected members to the meal plan
+      if (selectedMembers && selectedMembers.length > 0) {
+        await storage.addMealPlanMembers(generatedPlan.mealPlan.id, selectedMembers);
+      }
+      
       res.json(generatedPlan);
     } catch (error) {
       console.error("Error generating meal plan:", error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : "Failed to generate meal plan" 
       });
+    }
+  });
+
+  // Get meal plan members
+  app.get('/api/meal-plans/:id/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const mealPlanId = parseInt(req.params.id);
+      
+      // Verify user owns this meal plan
+      const mealPlan = await storage.getMealPlan(mealPlanId, userId);
+      if (!mealPlan) {
+        return res.status(404).json({ message: "Meal plan not found" });
+      }
+      
+      const members = await storage.getMealPlanMembers(mealPlanId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching meal plan members:", error);
+      res.status(500).json({ message: "Failed to fetch meal plan members" });
     }
   });
 
