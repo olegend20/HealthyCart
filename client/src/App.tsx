@@ -24,6 +24,8 @@ function Router() {
           <Route path="/household-setup" component={HouseholdSetup} />
           <Route path="/meal-plan-generator" component={MealPlanGenerator} />
           <Route path="/grocery-list/:id" component={GroceryList} />
+          <Route path="/recipes" component={() => <div className="p-8"><h1 className="text-2xl font-bold">Recipes</h1><p>Recipe browsing coming soon!</p></div>} />
+          <Route path="/grocery-lists" component={() => <div className="p-8"><h1 className="text-2xl font-bold">Grocery Lists</h1><p>Grocery list management coming soon!</p></div>} />
         </>
       )}
       <Route component={NotFound} />

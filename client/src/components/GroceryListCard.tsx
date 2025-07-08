@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, ShoppingCart } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Link } from "wouter";
 
 interface MealPlan {
   id: number;
@@ -122,8 +123,10 @@ export default function GroceryListCard({ mealPlan }: GroceryListCardProps) {
               </div>
             </div>
             
-            <Button className="w-full mt-4 bg-primary text-white hover:bg-primary/90">
-              View Full List
+            <Button className="w-full mt-4 bg-primary text-white hover:bg-primary/90" asChild>
+              <Link href={`/grocery-list/${currentGroceryList?.id}`}>
+                View Full List
+              </Link>
             </Button>
           </>
         ) : (
