@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -168,7 +168,7 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
     { value: "snack", label: "Snacks" }
   ];
 
-  const getDietaryInfo = () => {
+  const { restrictions, allergies } = useMemo(() => {
     const allRestrictions = householdMembers.flatMap(member => member.dietaryRestrictions || []);
     const allAllergies = householdMembers.flatMap(member => member.allergies || []);
     
@@ -176,9 +176,11 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
       restrictions: [...new Set(allRestrictions)],
       allergies: [...new Set(allAllergies)]
     };
-  };
+  }, [householdMembers]);
 
-  const { restrictions, allergies } = getDietaryInfo();
+  const handleMemberSelectionChange = useCallback((memberIds: number[]) => {
+    setFormData(prev => ({ ...prev, selectedMembers: memberIds || [] }));
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -298,11 +300,9 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
 
           {/* Household Member Selection */}
           <HouseholdMemberSelector
-            householdMembers={householdMembers}
-            selectedMembers={formData.selectedMembers}
-            onSelectionChange={(memberIds) => 
-              setFormData(prev => ({ ...prev, selectedMembers: memberIds }))
-            }
+            householdMembers={householdMembers || []}
+            selectedMembers={formData.selectedMembers || []}
+            onSelectionChange={handleMemberSelectionChange}
           />
 
           {(restrictions.length > 0 || allergies.length > 0) && (

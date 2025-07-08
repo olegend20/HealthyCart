@@ -61,6 +61,8 @@ export default function HouseholdMemberSelector({
   };
 
   const selectedMemberNames = useMemo(() => {
+    if (!householdMembers || !selectedMembers) return "";
+    
     return householdMembers
       .filter(m => selectedMembers.includes(m.id))
       .map(m => m.name)
@@ -68,9 +70,13 @@ export default function HouseholdMemberSelector({
   }, [householdMembers, selectedMembers]);
 
   const conflictInfo = useMemo(() => {
+    if (!householdMembers || !selectedMembers) {
+      return { restrictions: [], allergies: [], hasConflicts: false };
+    }
+
     const selected = householdMembers.filter(m => selectedMembers.includes(m.id));
-    const allRestrictions = selected.flatMap(m => m.dietaryRestrictions);
-    const allAllergies = selected.flatMap(m => m.allergies);
+    const allRestrictions = selected.flatMap(m => m.dietaryRestrictions || []);
+    const allAllergies = selected.flatMap(m => m.allergies || []);
     
     const restrictionCounts = allRestrictions.reduce((acc, r) => {
       acc[r] = (acc[r] || 0) + 1;
