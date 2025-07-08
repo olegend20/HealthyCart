@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -60,14 +60,14 @@ export default function HouseholdMemberSelector({
     onSelectionChange(childIds);
   };
 
-  const getSelectedMemberNames = () => {
+  const selectedMemberNames = useMemo(() => {
     return householdMembers
       .filter(m => selectedMembers.includes(m.id))
       .map(m => m.name)
       .join(", ");
-  };
+  }, [householdMembers, selectedMembers]);
 
-  const getConflictingRestrictions = () => {
+  const conflictInfo = useMemo(() => {
     const selected = householdMembers.filter(m => selectedMembers.includes(m.id));
     const allRestrictions = selected.flatMap(m => m.dietaryRestrictions);
     const allAllergies = selected.flatMap(m => m.allergies);
@@ -87,7 +87,7 @@ export default function HouseholdMemberSelector({
       allergies: Object.keys(allergyCounts),
       hasConflicts: false // We'll implement conflict detection later
     };
-  };
+  }, [householdMembers, selectedMembers]);
 
   if (householdMembers.length === 0) {
     return (
@@ -111,8 +111,6 @@ export default function HouseholdMemberSelector({
       </Card>
     );
   }
-
-  const conflictInfo = getConflictingRestrictions();
 
   return (
     <Card className={className}>
@@ -217,7 +215,7 @@ export default function HouseholdMemberSelector({
         {selectedMembers.length > 0 && (
           <div className="border-t pt-4">
             <h4 className="font-medium mb-2">Selected Members ({selectedMembers.length})</h4>
-            <p className="text-sm text-gray-600 mb-3">{getSelectedMemberNames()}</p>
+            <p className="text-sm text-gray-600 mb-3">{selectedMemberNames}</p>
             
             {/* Aggregated Dietary Info */}
             {(conflictInfo.restrictions.length > 0 || conflictInfo.allergies.length > 0) && (
