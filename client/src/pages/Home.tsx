@@ -5,20 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Utensils, Users, Calendar, DollarSign, Leaf, ShoppingCart, Bell, Plus, Edit, Bot, Brush } from "lucide-react";
+import { Utensils, Users, Calendar, DollarSign, Leaf, ShoppingCart, Bell, Plus, Edit, Bot, Brush, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import MealPlanCard from "@/components/MealPlanCard";
 import GroceryListCard from "@/components/GroceryListCard";
 import NutritionGoalsCard from "@/components/NutritionGoalsCard";
-import MealPlanModal from "@/components/MealPlanModal";
+import InlineMealPlanForm from "@/components/InlineMealPlanForm";
 import { useState } from "react";
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [showMealPlanModal, setShowMealPlanModal] = useState(false);
+  const [showMealPlanForm, setShowMealPlanForm] = useState(false);
 
   // Handle unauthorized errors
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function Home() {
                 </p>
                 <Button 
                   className="bg-white text-primary font-semibold hover:bg-gray-100"
-                  onClick={() => setShowMealPlanModal(true)}
+                  onClick={() => setShowMealPlanForm(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Create New Meal Plan
@@ -226,7 +226,7 @@ export default function Home() {
                       Create your first meal plan to get personalized recipes and grocery lists
                     </p>
                     <Button 
-                      onClick={() => setShowMealPlanModal(true)}
+                      onClick={() => setShowMealPlanForm(true)}
                       className="bg-primary hover:bg-primary/90"
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -256,7 +256,7 @@ export default function Home() {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start"
-                    onClick={() => setShowMealPlanModal(true)}
+                    onClick={() => setShowMealPlanForm(true)}
                   >
                     <Bot className="h-4 w-4 mr-3 text-primary" />
                     Generate AI Meal Plan
@@ -288,12 +288,23 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Meal Plan Modal */}
-      <MealPlanModal 
-        isOpen={showMealPlanModal}
-        onClose={() => setShowMealPlanModal(false)}
-        householdMembers={householdMembers || []}
-      />
+      {/* Meal Plan Form */}
+      {showMealPlanForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Create Meal Plan</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowMealPlanForm(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <InlineMealPlanForm 
+              householdMembers={householdMembers || []}
+              onSuccess={() => setShowMealPlanForm(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
