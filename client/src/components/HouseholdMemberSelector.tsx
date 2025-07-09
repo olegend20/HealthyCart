@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,34 +31,34 @@ export default function HouseholdMemberSelector({
 }: HouseholdMemberSelectorProps) {
   const [showPresets, setShowPresets] = useState(false);
 
-  const handleMemberToggle = (memberId: number) => {
+  const handleMemberToggle = useCallback((memberId: number) => {
     const newSelection = selectedMembers.includes(memberId)
       ? selectedMembers.filter(id => id !== memberId)
       : [...selectedMembers, memberId];
     onSelectionChange(newSelection);
-  };
+  }, [selectedMembers, onSelectionChange]);
 
-  const selectAllMembers = () => {
+  const selectAllMembers = useCallback(() => {
     onSelectionChange(householdMembers.map(m => m.id));
-  };
+  }, [householdMembers, onSelectionChange]);
 
-  const clearSelection = () => {
+  const clearSelection = useCallback(() => {
     onSelectionChange([]);
-  };
+  }, [onSelectionChange]);
 
-  const selectAdults = () => {
+  const selectAdults = useCallback(() => {
     const adultIds = householdMembers
       .filter(m => !m.age || m.age >= 18)
       .map(m => m.id);
     onSelectionChange(adultIds);
-  };
+  }, [householdMembers, onSelectionChange]);
 
-  const selectChildren = () => {
+  const selectChildren = useCallback(() => {
     const childIds = householdMembers
       .filter(m => m.age && m.age < 18)
       .map(m => m.id);
     onSelectionChange(childIds);
-  };
+  }, [householdMembers, onSelectionChange]);
 
   const selectedMemberNames = useMemo(() => {
     if (!householdMembers || !selectedMembers) return "";
