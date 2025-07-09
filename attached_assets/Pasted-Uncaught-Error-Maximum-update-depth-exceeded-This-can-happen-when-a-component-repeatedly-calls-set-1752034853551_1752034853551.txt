@@ -1,0 +1,59 @@
+Uncaught Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=ddadf89f:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=ddadf89f:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=ddadf89f:12403:15)
+    at chunk-VCJEE5DL.js?v=ddadf89f:119:7
+    at setRef (chunk-EVLBUYTV.js?v=ddadf89f:18:12)
+    at chunk-EVLBUYTV.js?v=ddadf89f:27:23
+    at Array.map (<anonymous>)
+    at chunk-EVLBUYTV.js?v=ddadf89f:26:27
+    at setRef (chunk-EVLBUYTV.js?v=ddadf89f:18:12)
+    at chunk-EVLBUYTV.js?v=ddadf89f:27:23
+chunk-RPCDYKBN.js?v=ddadf89f:521 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+printWarning @ chunk-RPCDYKBN.js?v=ddadf89f:521
+chunk-RPCDYKBN.js?v=ddadf89f:14032 The above error occurred in the <div> component:
+
+    at div
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BOL2CCOG.js?v=ddadf89f:42:13
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ddadf89f:79:13
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ddadf89f:56:13
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LVSERQ5O.js?v=ddadf89f:490:20
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-dialog.js?v=ddadf89f:130:13
+    at Presence (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VCJEE5DL.js?v=ddadf89f:24:11)
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-dialog.js?v=ddadf89f:120:64
+    at _c (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/src/components/ui/dialog.tsx:27:11)
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ddadf89f:79:13
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ddadf89f:56:13
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BOL2CCOG.js?v=ddadf89f:42:13
+    at https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5VYKCIW7.js?v=ddadf89f:260:22
+    at Presence (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VCJEE5DL.js?v=ddadf89f:24:11)
+    at Provider (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ddadf89f:38:15)
+    at DialogPortal (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-dialog.js?v=ddadf89f:112:11)
+    at _c3 (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ddadf89f:38:15)
+    at Dialog (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-dialog.js?v=ddadf89f:53:5)
+    at MealPlanModal (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/src/components/MealPlanModal.tsx:36:41)
+    at div
+    at Home (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/src/pages/Home.tsx:33:44)
+    at Route (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ddadf89f:323:16)
+    at Switch (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ddadf89f:379:17)
+    at Router (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/src/App.tsx?v=yVzIiNlpADUttpqO6j9jm:33:42)
+    at Provider (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ddadf89f:38:15)
+    at TooltipProvider (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ddadf89f:62:5)
+    at QueryClientProvider (https://a86a624b-5c7e-45cf-9dee-6616c296808a-00-2n102hjy7fonp.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ddadf89f:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=ddadf89f:14032
+chunk-RPCDYKBN.js?v=ddadf89f:9129 Uncaught Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=ddadf89f:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=ddadf89f:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=ddadf89f:12403:15)
+    at chunk-VCJEE5DL.js?v=ddadf89f:119:7
+    at setRef (chunk-EVLBUYTV.js?v=ddadf89f:18:12)
+    at chunk-EVLBUYTV.js?v=ddadf89f:27:23
+    at Array.map (<anonymous>)
+    at chunk-EVLBUYTV.js?v=ddadf89f:26:27
+    at setRef (chunk-EVLBUYTV.js?v=ddadf89f:18:12)
+    at chunk-EVLBUYTV.js?v=ddadf89f:27:23
