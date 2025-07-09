@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,8 @@ interface MealPlanModalProps {
 
 export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }: MealPlanModalProps) {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
+  
+  const getInitialFormData = () => ({
     name: '',
     duration: 7,
     budget: '',
@@ -42,6 +43,8 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
     mealTypes: ['dinner'] as string[],
     selectedMembers: [] as number[]
   });
+  
+  const [formData, setFormData] = useState(getInitialFormData);
 
   const generateMealPlanMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -78,15 +81,7 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
   });
 
   const resetForm = () => {
-    setFormData({
-      name: '',
-      duration: 7,
-      budget: '',
-      startDate: new Date(),
-      goals: [],
-      mealTypes: ['dinner'],
-      selectedMembers: [] as number[]
-    });
+    setFormData(getInitialFormData());
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -182,9 +177,9 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
     };
   }, [householdMembers]);
 
-  const handleMemberSelectionChange = useCallback((memberIds: number[]) => {
+  const handleMemberSelectionChange = (memberIds: number[]) => {
     setFormData(prev => ({ ...prev, selectedMembers: memberIds || [] }));
-  }, []);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
