@@ -14,7 +14,7 @@ import { CalendarIcon, Bot, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import HouseholdMemberSelector from "@/components/HouseholdMemberSelector";
+import SimpleHouseholdSelector from "@/components/SimpleHouseholdSelector";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -308,7 +308,7 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
           </div>
 
           {/* Household Member Selection */}
-          <HouseholdMemberSelector
+          <SimpleHouseholdSelector
             householdMembers={householdMembers || []}
             selectedMembers={formData.selectedMembers || []}
             onSelectionChange={handleMemberSelectionChange}
