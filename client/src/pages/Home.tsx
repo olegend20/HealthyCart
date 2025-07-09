@@ -12,10 +12,11 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import MealPlanCard from "@/components/MealPlanCard";
 import GroceryListCard from "@/components/GroceryListCard";
 import NutritionGoalsCard from "@/components/NutritionGoalsCard";
-import InlineMealPlanForm from "@/components/InlineMealPlanForm";
+import MealPlanFormDebug from "@/components/MealPlanFormDebug";
 import { useState } from "react";
 
 export default function Home() {
+  console.log("Home component render");
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [showMealPlanForm, setShowMealPlanForm] = useState(false);
@@ -46,6 +47,8 @@ export default function Home() {
     enabled: !!user,
     retry: false,
   });
+  
+  console.log("householdMembers in Home:", householdMembers);
 
   const { data: nutritionGoals, isLoading: nutritionLoading } = useQuery({
     queryKey: ["/api/nutrition-goals"],
@@ -298,7 +301,7 @@ export default function Home() {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <InlineMealPlanForm 
+            <MealPlanFormDebug 
               householdMembers={householdMembers || []}
               onSuccess={() => setShowMealPlanForm(false)}
             />
