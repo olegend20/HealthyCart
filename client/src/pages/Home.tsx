@@ -12,11 +12,10 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import MealPlanCard from "@/components/MealPlanCard";
 import GroceryListCard from "@/components/GroceryListCard";
 import NutritionGoalsCard from "@/components/NutritionGoalsCard";
-import MealPlanFormDebug from "@/components/MealPlanFormDebug";
+import WorkingMealPlanForm from "@/components/WorkingMealPlanForm";
 import { useState } from "react";
 
 export default function Home() {
-  console.log("Home component render");
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [showMealPlanForm, setShowMealPlanForm] = useState(false);
@@ -47,8 +46,6 @@ export default function Home() {
     enabled: !!user,
     retry: false,
   });
-  
-  console.log("householdMembers in Home:", householdMembers);
 
   const { data: nutritionGoals, isLoading: nutritionLoading } = useQuery({
     queryKey: ["/api/nutrition-goals"],
@@ -294,14 +291,14 @@ export default function Home() {
       {/* Meal Plan Form */}
       {showMealPlanForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Create Meal Plan</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowMealPlanForm(false)}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <MealPlanFormDebug 
+            <WorkingMealPlanForm 
               householdMembers={householdMembers || []}
               onSuccess={() => setShowMealPlanForm(false)}
             />
