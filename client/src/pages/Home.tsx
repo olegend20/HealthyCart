@@ -292,7 +292,7 @@ export default function Home() {
       <MealPlanModal 
         isOpen={showMealPlanModal}
         onClose={() => setShowMealPlanModal(false)}
-        householdMembers={householdMembers}
+        householdMembers={householdMembers || []}
       />
     </div>
   );

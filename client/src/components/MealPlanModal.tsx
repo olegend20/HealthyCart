@@ -54,8 +54,8 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
         title: "Success!",
         description: "Your meal plan has been generated successfully.",
       });
-      onClose();
       resetForm();
+      onClose();
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -169,6 +169,10 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
   ];
 
   const { restrictions, allergies } = useMemo(() => {
+    if (!householdMembers || householdMembers.length === 0) {
+      return { restrictions: [], allergies: [] };
+    }
+    
     const allRestrictions = householdMembers.flatMap(member => member.dietaryRestrictions || []);
     const allAllergies = householdMembers.flatMap(member => member.allergies || []);
     
@@ -183,7 +187,12 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
   }, []);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        resetForm();
+        onClose();
+      }
+    }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
