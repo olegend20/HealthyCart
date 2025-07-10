@@ -33,7 +33,7 @@ export default function Home() {
       }, 500);
       return;
     }
-  }, [user, authLoading, toast]);
+  }, [user, authLoading]); // Removed toast from dependencies
 
   const { data: mealPlans, isLoading: mealPlansLoading } = useQuery({
     queryKey: ["/api/meal-plans"],
