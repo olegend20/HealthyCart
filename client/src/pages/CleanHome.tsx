@@ -3,8 +3,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Utensils, Users, Calendar, DollarSign, Leaf, Bell, Plus, X } from "lucide-react";
-import SimpleMealPlanForm from "@/components/SimpleMealPlanForm";
-import TestForm from "@/components/TestForm";
+import WorkingMealPlanForm from "@/components/WorkingMealPlanForm";
 
 interface User {
   id: string;
@@ -316,8 +315,12 @@ export default function CleanHome() {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <TestForm 
-              onClose={() => setShowMealPlanForm(false)}
+            <WorkingMealPlanForm 
+              householdMembers={householdMembers}
+              onSuccess={() => {
+                setShowMealPlanForm(false);
+                window.location.reload();
+              }}
             />
           </div>
         </div>
