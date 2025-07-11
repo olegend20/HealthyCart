@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import MealPlanCard from "@/components/MealPlanCard";
 import GroceryListCard from "@/components/GroceryListCard";
 import NutritionGoalsCard from "@/components/NutritionGoalsCard";
 import FixedMealPlanForm from "@/components/FixedMealPlanForm";
-import { useState } from "react";
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
