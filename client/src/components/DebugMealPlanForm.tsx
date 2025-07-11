@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Bot, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -82,6 +83,17 @@ export default function DebugMealPlanForm({ householdMembers, onSuccess }: Debug
     setFormData(prev => ({ ...prev, name: e.target.value }));
   }, []);
 
+  const handleMemberClick = useCallback((memberId: number) => {
+    console.log("Member clicked:", memberId);
+    setFormData(prev => {
+      const newSelectedMembers = prev.selectedMembers.includes(memberId)
+        ? prev.selectedMembers.filter(id => id !== memberId)
+        : [...prev.selectedMembers, memberId];
+      console.log("New selected members:", newSelectedMembers);
+      return { ...prev, selectedMembers: newSelectedMembers };
+    });
+  }, []);
+
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     
@@ -91,6 +103,15 @@ export default function DebugMealPlanForm({ householdMembers, onSuccess }: Debug
       toast({
         title: "Validation Error",
         description: "Please enter a name for your meal plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.selectedMembers.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select at least one household member for this meal plan.",
         variant: "destructive",
       });
       return;
@@ -134,10 +155,27 @@ export default function DebugMealPlanForm({ householdMembers, onSuccess }: Debug
           </div>
 
           <div>
-            <Label>Selected Members: {formData.selectedMembers.length}</Label>
-            <p className="text-sm text-gray-500">
-              {householdMembers.map(m => m.name).join(", ")}
-            </p>
+            <Label className="flex items-center space-x-2 mb-2">
+              <Users className="h-4 w-4" />
+              <span>Select Family Members</span>
+            </Label>
+            <div className="space-y-2">
+              {householdMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleMemberClick(member.id)}
+                >
+                  <Checkbox
+                    checked={formData.selectedMembers.includes(member.id)}
+                    readOnly
+                    className="pointer-events-none"
+                  />
+                  <span className="font-medium">{member.name}</span>
+                  {member.age && <span className="text-sm text-gray-500">({member.age} years)</span>}
+                </div>
+              ))}
+            </div>
           </div>
 
           <Button 

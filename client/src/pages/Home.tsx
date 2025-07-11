@@ -12,7 +12,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import MealPlanCard from "@/components/MealPlanCard";
 import GroceryListCard from "@/components/GroceryListCard";
 import NutritionGoalsCard from "@/components/NutritionGoalsCard";
-import DebugMealPlanForm from "@/components/DebugMealPlanForm";
+import FixedMealPlanForm from "@/components/FixedMealPlanForm";
 import { useState } from "react";
 
 export default function Home() {
@@ -298,7 +298,7 @@ export default function Home() {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <DebugMealPlanForm 
+            <FixedMealPlanForm 
               householdMembers={householdMembers || []}
               onSuccess={() => setShowMealPlanForm(false)}
             />
