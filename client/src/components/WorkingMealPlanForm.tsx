@@ -18,7 +18,11 @@ interface WorkingMealPlanFormProps {
 export default function WorkingMealPlanForm({ householdMembers, onSuccess }: WorkingMealPlanFormProps) {
   const [formData, setFormData] = useState({
     name: '',
-    selectedMembers: [] as number[]
+    selectedMembers: [] as number[],
+    goals: [] as string[],
+    mealTypes: ['dinner'] as string[],
+    duration: 7,
+    budget: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,9 +50,10 @@ export default function WorkingMealPlanForm({ householdMembers, onSuccess }: Wor
         credentials: "include",
         body: JSON.stringify({
           name: formData.name,
-          duration: 7,
-          goals: ['Family-friendly recipes'],
-          mealTypes: ['dinner'],
+          duration: formData.duration,
+          goals: formData.goals.length > 0 ? formData.goals : ['Family-friendly recipes'],
+          mealTypes: formData.mealTypes,
+          budget: formData.budget > 0 ? formData.budget : undefined,
           startDate: new Date().toISOString()
         }),
       });
@@ -63,7 +68,11 @@ export default function WorkingMealPlanForm({ householdMembers, onSuccess }: Wor
       // Reset form
       setFormData({
         name: '',
-        selectedMembers: []
+        selectedMembers: [],
+        goals: [],
+        mealTypes: ['dinner'],
+        duration: 7,
+        budget: 0
       });
       
       onSuccess?.();
@@ -85,6 +94,44 @@ export default function WorkingMealPlanForm({ householdMembers, onSuccess }: Wor
     }));
   };
 
+  const handleGoalToggle = (goal: string) => {
+    setFormData(prev => ({
+      ...prev,
+      goals: prev.goals.includes(goal)
+        ? prev.goals.filter(g => g !== goal)
+        : [...prev.goals, goal]
+    }));
+  };
+
+  const handleMealTypeToggle = (mealType: string) => {
+    setFormData(prev => ({
+      ...prev,
+      mealTypes: prev.mealTypes.includes(mealType)
+        ? prev.mealTypes.filter(m => m !== mealType)
+        : [...prev.mealTypes, mealType]
+    }));
+  };
+
+  const availableGoals = [
+    'Reduced calories',
+    'Higher protein',
+    'Quick meal prep',
+    'Increased vegetables',
+    'Budget-friendly',
+    'Heart-healthy',
+    'Low-carb',
+    'Family-friendly recipes',
+    'Meal prep friendly',
+    'Gluten-free options'
+  ];
+
+  const availableMealTypes = [
+    'breakfast',
+    'lunch', 
+    'dinner',
+    'snacks'
+  ];
+
   return (
     <div className="bg-white p-6 rounded-lg border">
       <div className="mb-6">
@@ -105,6 +152,89 @@ export default function WorkingMealPlanForm({ householdMembers, onSuccess }: Wor
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Duration (Days)
+          </label>
+          <select
+            value={formData.duration}
+            onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value={3}>3 days</option>
+            <option value={7}>1 week</option>
+            <option value={14}>2 weeks</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Weekly Budget (Optional)
+          </label>
+          <input
+            type="number"
+            value={formData.budget || ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }))}
+            placeholder="e.g., 150"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Meal Types
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {availableMealTypes.map((mealType) => (
+              <div
+                key={mealType}
+                className={`p-2 border rounded-md cursor-pointer transition-colors text-center ${
+                  formData.mealTypes.includes(mealType)
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => handleMealTypeToggle(mealType)}
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.mealTypes.includes(mealType)}
+                  onChange={() => {}}
+                  className="mr-2"
+                />
+                {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Nutrition Goals
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {availableGoals.map((goal) => (
+              <div
+                key={goal}
+                className={`p-2 border rounded-md cursor-pointer transition-colors text-center ${
+                  formData.goals.includes(goal)
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => handleGoalToggle(goal)}
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.goals.includes(goal)}
+                  onChange={() => {}}
+                  className="mr-2"
+                />
+                <span className="text-sm">{goal}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div>

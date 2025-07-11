@@ -112,12 +112,13 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
     endDate.setDate(endDate.getDate() + request.duration - 1);
 
     // Create meal plan
+    const totalCost = generatedPlan.totalEstimatedCost || 0;
     const mealPlanData: InsertMealPlan = {
       userId: request.userId,
       name: request.name,
       startDate: request.startDate,
       endDate: endDate,
-      totalCost: generatedPlan.totalEstimatedCost.toString(),
+      totalCost: totalCost.toString(),
       status: "active",
       budget: request.budget ? request.budget.toString() : undefined
     };
@@ -129,7 +130,7 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
     const groceryListData: InsertGroceryList = {
       mealPlanId: mealPlan.id,
       name: `${request.name} - Shopping List`,
-      totalCost: generatedPlan.totalEstimatedCost.toString()
+      totalCost: totalCost.toString()
     };
 
     const groceryList = await storage.createGroceryList(groceryListData);
