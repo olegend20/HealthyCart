@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
-import Home from "@/pages/Home";
+import CleanHome from "@/pages/CleanHome";
 import HouseholdSetup from "@/pages/HouseholdSetup";
 import MealPlanGenerator from "@/pages/MealPlanGenerator";
 import GroceryList from "@/pages/GroceryList";
@@ -21,7 +21,7 @@ function Router() {
         <Route path="/" component={Landing} />
       ) : (
         <>
-          <Route path="/" component={Home} />
+          <Route path="/" component={CleanHome} />
           <Route path="/household-setup" component={HouseholdSetup} />
           <Route path="/meal-plan-generator" component={MealPlanGenerator} />
           <Route path="/grocery-list/:id" component={GroceryList} />
