@@ -22,17 +22,13 @@ export default function Home() {
   // Handle unauthorized errors
   useEffect(() => {
     if (!authLoading && !user) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
+      // Don't use toast here as it causes infinite loops
       setTimeout(() => {
         window.location.href = "/api/login";
       }, 500);
       return;
     }
-  }, [user, authLoading]); // Removed toast from dependencies
+  }, [user, authLoading]);
 
   const { data: mealPlans, isLoading: mealPlansLoading } = useQuery({
     queryKey: ["/api/meal-plans"],
