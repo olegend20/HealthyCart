@@ -12,7 +12,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import MealPlanCard from "@/components/MealPlanCard";
 import GroceryListCard from "@/components/GroceryListCard";
 import NutritionGoalsCard from "@/components/NutritionGoalsCard";
-import IsolatedTest from "@/components/IsolatedTest";
+import SimpleMealPlanForm from "@/components/SimpleMealPlanForm";
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
@@ -297,7 +297,10 @@ export default function Home() {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <IsolatedTest />
+            <SimpleMealPlanForm 
+              householdMembers={householdMembers || []}
+              onSuccess={() => setShowMealPlanForm(false)}
+            />
           </div>
         </div>
       )}
