@@ -157,7 +157,7 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
             amount: ingredient.amount.toString(),
             unit: ingredient.unit,
             category: ingredient.category,
-            estimatedPrice: (Math.random() * 5 + 1).toFixed(2), // Random price between $1-6
+            estimatedPrice: (Math.random() * 5 + 1).toString(), // Random price between $1-6
             purchased: false,
             aisle: getCategoryAisle(ingredient.category)
           };

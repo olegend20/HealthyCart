@@ -256,9 +256,10 @@ export default function MealPlanDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Meal Schedule</h2>
-            <div className="space-y-6">
-              {Object.entries(mealsByDate).map(([date, dateMeals]) => (
-                <div key={date} className="bg-white rounded-lg shadow-sm p-6">
+            {meals.length > 0 ? (
+              <div className="space-y-6">
+                {Object.entries(mealsByDate).map(([date, dateMeals]) => (
+                  <div key={date} className="bg-white rounded-lg shadow-sm p-6">
                   <h3 className="text-md font-medium text-gray-900 mb-4">
                     {formatDate(date + 'T00:00:00')}
                   </h3>
@@ -357,8 +358,20 @@ export default function MealPlanDetails() {
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="text-center py-8">
+                  <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 mb-2">No meals have been generated yet</p>
+                  <p className="text-sm text-gray-400">
+                    This meal plan was created but may not have generated specific meals. 
+                    The grocery list below contains suggested ingredients.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Grocery List Sidebar */}
@@ -381,7 +394,12 @@ export default function MealPlanDetails() {
                           {item.amount} {item.unit}
                         </span>
                       </div>
-                      <span className="text-sm text-gray-600">${item.estimatedPrice.toFixed(2)}</span>
+                      <span className="text-sm text-gray-600">
+                        ${typeof item.estimatedPrice === 'string' 
+                          ? parseFloat(item.estimatedPrice.replace('$', '')).toFixed(2) || '0.00' 
+                          : (item.estimatedPrice || 0).toFixed(2)
+                        }
+                      </span>
                     </div>
                   ))}
                 </div>
