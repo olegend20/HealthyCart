@@ -133,6 +133,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
       const mealPlan = await storage.getMealPlan(id, userId);
+      if (!mealPlan) {
+        return res.status(404).json({ message: "Meal plan not found" });
+      }
+      res.json(mealPlan);
+    } catch (error) {
+      console.error("Error fetching meal plan:", error);
+      res.status(500).json({ message: "Failed to fetch meal plan" });
+    }
+  });
+
+  app.get('/api/meals/:mealPlanId', isAuthenticated, async (req: any, res) => {
+    try {
+      const mealPlanId = parseInt(req.params.mealPlanId);
+      const meals = await storage.getMeals(mealPlanId);
+      res.json(meals);
+    } catch (error) {
+      console.error("Error fetching meals:", error);
+      res.status(500).json({ message: "Failed to fetch meals" });
+    }
+  });
+
+  app.get('/api/recipes/:id/ingredients', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const ingredients = await storage.getRecipeIngredients(id);
+      res.json(ingredients);
+    } catch (error) {
+      console.error("Error fetching recipe ingredients:", error);
+      res.status(500).json({ message: "Failed to fetch recipe ingredients" });
+    }
+  });
+
+  app.get('/api/grocery-lists/meal-plan/:mealPlanId', isAuthenticated, async (req: any, res) => {
+    try {
+      const mealPlanId = parseInt(req.params.mealPlanId);
+      const groceryLists = await storage.getGroceryLists(mealPlanId);
+      
+      // Get detailed grocery lists with items
+      const detailedGroceryLists = await Promise.all(
+        groceryLists.map(async (list) => {
+          const detailedList = await storage.getGroceryList(list.id);
+          return detailedList;
+        })
+      );
+      
+      res.json(detailedGroceryLists.filter(Boolean));
+    } catch (error) {
+      console.error("Error fetching grocery lists:", error);
+      res.status(500).json({ message: "Failed to fetch grocery lists" });
+    }
+  });
+
+  app.get('/api/meal-plans/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const mealPlan = await storage.getMealPlan(id, userId);
       
       if (!mealPlan) {
         return res.status(404).json({ message: "Meal plan not found" });

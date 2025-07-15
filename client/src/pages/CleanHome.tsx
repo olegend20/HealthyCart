@@ -242,7 +242,33 @@ export default function CleanHome() {
                   <CardDescription>{currentMealPlan.name}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p>Meal plan details will be displayed here.</p>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Status</p>
+                        <p className="font-medium capitalize">{currentMealPlan.status}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Budget</p>
+                        <p className="font-medium">${currentMealPlan.budget || 'Not set'}</p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-3">
+                      <Button asChild className="flex-1">
+                        <Link href={`/meal-plan/${currentMealPlan.id}`}>
+                          View Details
+                        </Link>
+                      </Button>
+                      <Button 
+                        onClick={() => setShowMealPlanForm(true)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create New
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
@@ -266,6 +292,30 @@ export default function CleanHome() {
                       <Plus className="h-4 w-4 mr-2" />
                       Create Meal Plan
                     </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Recent Meal Plans */}
+            {mealPlans.length > 1 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Recent Meal Plans</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {mealPlans.slice(0, 3).map((plan: any) => (
+                      <div key={plan.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{plan.name}</p>
+                          <p className="text-sm text-gray-500 capitalize">{plan.status}</p>
+                        </div>
+                        <Button size="sm" variant="ghost" asChild>
+                          <Link href={`/meal-plan/${plan.id}`}>View</Link>
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

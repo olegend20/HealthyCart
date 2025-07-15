@@ -112,6 +112,18 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 11, 2025. Meal plan details view and infinite loop debugging
+  - Fixed critical React infinite loop issue caused by Radix UI components
+  - Replaced problematic UI components with native HTML elements
+  - Created comprehensive meal plan details view (/meal-plan/:id)
+  - Added meal plan ingredients and recipe viewing functionality
+  - Enhanced meal plan form with nutrition goals (reduced calories, higher protein, etc.)
+  - Added meal type selection (breakfast, lunch, dinner, snacks)
+  - Added duration options (3 days, 1 week, 2 weeks) and budget planning
+  - Created API endpoints for meal plan details, recipe ingredients, and grocery lists
+  - Updated Home component with meal plan navigation and recent meal plans display
+  - Fixed backend meal plan generation errors with proper error handling
+
 - July 08, 2025. Household member selection and meal planning workflow redesign
   - Implemented household member selection for meal plans
   - Added HouseholdMemberSelector component with multi-select functionality
