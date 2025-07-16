@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGeneratorFixed";
+import { generateMultiMealPlan, type MultiMealPlanRequest } from "./services/multiMealPlanGenerator";
 import { 
   insertHouseholdMemberSchema, 
   insertCookingEquipmentSchema, 
@@ -232,6 +233,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating meal plan:", error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : "Failed to generate meal plan" 
+      });
+    }
+  });
+
+  app.post('/api/meal-plans/generate-multi', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupName, mealPlans } = req.body;
+      
+      console.log("Received multi-meal plan generation request:", { groupName, mealPlansCount: mealPlans.length });
+      
+      const request: MultiMealPlanRequest = {
+        userId,
+        groupName: groupName || "Multi-Target Meal Planning",
+        mealPlans: mealPlans.map((plan: any) => ({
+          name: plan.name,
+          targetGroup: plan.targetGroup,
+          selectedMembers: plan.selectedMembers,
+          goals: plan.goals,
+          mealTypes: plan.mealTypes,
+          duration: plan.duration,
+          budget: plan.budget,
+          startDate: new Date(plan.startDate)
+        }))
+      };
+
+      const generatedMultiPlan = await generateMultiMealPlan(request);
+      
+      res.json(generatedMultiPlan);
+    } catch (error) {
+      console.error("Error generating multi-meal plan:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to generate multi-meal plan" 
       });
     }
   });

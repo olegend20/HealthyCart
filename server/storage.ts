@@ -51,6 +51,10 @@ export interface IStorage {
   createCookingEquipment(equipment: InsertCookingEquipment): Promise<CookingEquipment>;
   deleteCookingEquipment(id: number): Promise<void>;
   
+  // Meal plan groups
+  getMealPlanGroups(userId: string): Promise<MealPlanGroup[]>;
+  createMealPlanGroup(group: InsertMealPlanGroup): Promise<MealPlanGroup>;
+  
   // Meal plans
   getMealPlans(userId: string): Promise<MealPlan[]>;
   getMealPlan(id: number, userId: string): Promise<MealPlan | undefined>;
@@ -160,6 +164,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCookingEquipment(id: number): Promise<void> {
     await db.delete(cookingEquipment).where(eq(cookingEquipment.id, id));
+  }
+
+  // Meal plan groups
+  async getMealPlanGroups(userId: string): Promise<MealPlanGroup[]> {
+    return await db
+      .select()
+      .from(mealPlanGroups)
+      .where(eq(mealPlanGroups.userId, userId))
+      .orderBy(desc(mealPlanGroups.createdAt));
+  }
+
+  async createMealPlanGroup(group: InsertMealPlanGroup): Promise<MealPlanGroup> {
+    const [result] = await db.insert(mealPlanGroups).values(group).returning();
+    return result;
   }
 
   // Meal plans

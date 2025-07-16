@@ -60,15 +60,28 @@ export const cookingEquipment = pgTable("cooking_equipment", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Meal plan groups (for multi-target planning)
+export const mealPlanGroups = pgTable("meal_plan_groups", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Meal plans
 export const mealPlans = pgTable("meal_plans", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  groupId: integer("group_id").references(() => mealPlanGroups.id, { onDelete: "cascade" }),
   name: varchar("name").notNull(),
+  targetGroup: varchar("target_group").default("family"), // 'adults', 'kids', 'family', 'dietary'
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
+  duration: integer("duration").notNull().default(7),
   budget: decimal("budget", { precision: 10, scale: 2 }),
   goals: jsonb("goals").$type<string[]>().default([]),
+  mealTypes: jsonb("meal_types").$type<string[]>().default(['dinner']),
   status: varchar("status").default("planning"), // 'planning', 'active', 'completed', 'archived'
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -182,6 +195,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   householdMembers: many(householdMembers),
   cookingEquipment: many(cookingEquipment),
   mealPlans: many(mealPlans),
+  mealPlanGroups: many(mealPlanGroups),
   nutritionGoals: many(nutritionGoals),
 }));
 
@@ -199,10 +213,22 @@ export const cookingEquipmentRelations = relations(cookingEquipment, ({ one }) =
   }),
 }));
 
+export const mealPlanGroupsRelations = relations(mealPlanGroups, ({ one, many }) => ({
+  user: one(users, {
+    fields: [mealPlanGroups.userId],
+    references: [users.id],
+  }),
+  mealPlans: many(mealPlans),
+}));
+
 export const mealPlansRelations = relations(mealPlans, ({ one, many }) => ({
   user: one(users, {
     fields: [mealPlans.userId],
     references: [users.id],
+  }),
+  group: one(mealPlanGroups, {
+    fields: [mealPlans.groupId],
+    references: [mealPlanGroups.id],
   }),
   meals: many(meals),
   groceryLists: many(groceryLists),
@@ -268,6 +294,9 @@ export type HouseholdMember = typeof householdMembers.$inferSelect;
 
 export type InsertCookingEquipment = typeof cookingEquipment.$inferInsert;
 export type CookingEquipment = typeof cookingEquipment.$inferSelect;
+
+export type InsertMealPlanGroup = typeof mealPlanGroups.$inferInsert;
+export type MealPlanGroup = typeof mealPlanGroups.$inferSelect;
 
 export type InsertMealPlan = typeof mealPlans.$inferInsert;
 export type MealPlan = typeof mealPlans.$inferSelect;
