@@ -117,7 +117,63 @@ IMPORTANT REQUIREMENTS:
 7. Include specific cooking instructions
 8. Suggest ingredient substitutions for allergies/preferences
 
-Please respond with a complete meal plan in JSON format with the exact structure specified in the TypeScript interface.`;
+Please respond with a complete meal plan in JSON format with this exact structure:
+{
+  "meals": [
+    {
+      "name": "Recipe Name",
+      "description": "Brief description", 
+      "date": "2025-01-01",
+      "mealType": "dinner",
+      "servings": 4,
+      "prepTime": 30,
+      "cookTime": 25,
+      "difficulty": "medium",
+      "cuisine": "American",
+      "ingredients": [
+        {
+          "name": "chicken breast",
+          "amount": 1.5,
+          "unit": "lbs",
+          "category": "protein"
+        }
+      ],
+      "instructions": "Step by step cooking instructions",
+      "estimatedCost": 12.50,
+      "tags": ["healthy", "high-protein"],
+      "nutritionFacts": {
+        "calories": 350,
+        "protein": 35,
+        "carbs": 20,
+        "fat": 10,
+        "fiber": 5
+      },
+      "equipmentUsed": ["stove", "oven"]
+    }
+  ],
+  "totalEstimatedCost": 85.00,
+  "ingredientOptimization": {
+    "sharedIngredients": ["onions", "garlic"],
+    "wasteReduction": "Used chicken in 3 meals",
+    "costSavings": 15.00
+  },
+  "nutritionSummary": {
+    "dailyAverages": {
+      "calories": 450,
+      "protein": 35,
+      "carbs": 45,
+      "fat": 15,
+      "fiber": 8
+    },
+    "goalProgress": [
+      {
+        "goal": "Higher protein",
+        "progress": 85,
+        "recommendations": ["Add protein snacks"]
+      }
+    ]
+  }
+}`;
 
   try {
     console.log("Sending request to OpenAI with model gpt-4o");
@@ -146,12 +202,42 @@ Please respond with a complete meal plan in JSON format with the exact structure
     console.log("Raw OpenAI response:", content.substring(0, 500) + "...");
     const generatedPlan: GeneratedMealPlan = JSON.parse(content);
     
-    console.log("Generated meal plan with", generatedPlan.meals?.length || 0, "meals");
-    console.log("Meal plan structure:", Object.keys(generatedPlan));
-    if (generatedPlan.meals && generatedPlan.meals.length > 0) {
-      console.log("First meal example:", generatedPlan.meals[0]);
+    // Handle different response formats from OpenAI
+    let meals = generatedPlan.meals || [];
+    if (!meals.length && (generatedPlan as any).mealPlan) {
+      // OpenAI sometimes returns { "mealPlan": [...] } instead of { "meals": [...] }
+      meals = (generatedPlan as any).mealPlan;
+      console.log("Found meals in mealPlan property, converting format");
     }
-    return generatedPlan;
+    
+    console.log("Generated meal plan with", meals?.length || 0, "meals");
+    console.log("Meal plan structure:", Object.keys(generatedPlan));
+    if (meals && meals.length > 0) {
+      console.log("First meal example:", meals[0]);
+    }
+    
+    // Normalize the response format
+    const normalizedPlan: GeneratedMealPlan = {
+      meals: meals || [],
+      totalEstimatedCost: generatedPlan.totalEstimatedCost || 0,
+      ingredientOptimization: generatedPlan.ingredientOptimization || {
+        sharedIngredients: [],
+        wasteReduction: "No optimization data available",
+        costSavings: 0
+      },
+      nutritionSummary: generatedPlan.nutritionSummary || {
+        dailyAverages: {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          fiber: 0
+        },
+        goalProgress: []
+      }
+    };
+    
+    return normalizedPlan;
   } catch (error) {
     console.error("Error generating meal plan:", error);
     if (error instanceof Error) {

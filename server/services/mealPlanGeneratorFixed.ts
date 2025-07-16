@@ -166,9 +166,11 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
           }
         }
 
-        // Create meal instance
+        // Create meal instance - distribute meals across the duration
         const mealDate = new Date(request.startDate);
-        mealDate.setDate(mealDate.getDate() + index); // Distribute meals across days
+        if (request.duration > 1) {
+          mealDate.setDate(mealDate.getDate() + Math.floor(index * request.duration / generatedPlan.meals.length));
+        }
 
         const mealRecord: InsertMeal = {
           mealPlanId: mealPlan.id,
