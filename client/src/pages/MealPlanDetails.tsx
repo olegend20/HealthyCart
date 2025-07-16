@@ -77,6 +77,7 @@ export default function MealPlanDetails() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [groceryList, setGroceryList] = useState<GroceryList | null>(null);
   const [recipeIngredients, setRecipeIngredients] = useState<{ [key: number]: RecipeIngredient[] }>({});
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -267,9 +268,14 @@ export default function MealPlanDetails() {
                     {dateMeals.map((meal) => (
                       <div key={meal.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="font-medium text-gray-900">{meal.recipe.name}</h4>
-                            <p className="text-sm text-gray-500 capitalize">{meal.mealType} • {meal.servings} servings</p>
+                          <div className="flex-1">
+                            <button
+                              onClick={() => setSelectedRecipe(meal.recipe)}
+                              className="text-left hover:text-blue-600 transition-colors"
+                            >
+                              <h4 className="font-medium text-gray-900 hover:text-blue-600">{meal.recipe.name}</h4>
+                              <p className="text-sm text-gray-500 capitalize">{meal.mealType} • {meal.servings} servings</p>
+                            </button>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium text-gray-900">${meal.estimatedCost || '0.00'}</p>
@@ -296,6 +302,22 @@ export default function MealPlanDetails() {
                         {meal.recipe.description && (
                           <p className="text-sm text-gray-600 mb-3">{meal.recipe.description}</p>
                         )}
+
+                        {/* Action Buttons */}
+                        <div className="flex space-x-2 mb-3">
+                          <button
+                            onClick={() => setSelectedRecipe(meal.recipe)}
+                            className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                          >
+                            View Recipe & Instructions
+                          </button>
+                          <Link
+                            to={`/recipe/${meal.recipe.id}/customize`}
+                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                          >
+                            Customize Recipe
+                          </Link>
+                        </div>
 
                         {/* Ingredients */}
                         {recipeIngredients[meal.recipe.id] && (
@@ -412,6 +434,173 @@ export default function MealPlanDetails() {
           </div>
         </div>
       </main>
+
+      {/* Recipe Detail Modal */}
+      {selectedRecipe && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {selectedRecipe.name}
+                </h2>
+                <button
+                  onClick={() => setSelectedRecipe(null)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {selectedRecipe.imageUrl && (
+                <img 
+                  src={selectedRecipe.imageUrl} 
+                  alt={selectedRecipe.name}
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                />
+              )}
+
+              <p className="text-gray-600 mb-4">{selectedRecipe.description}</p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {selectedRecipe.prepTime}
+                  </div>
+                  <div className="text-sm text-gray-500">Prep Time (min)</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {selectedRecipe.cookTime}
+                  </div>
+                  <div className="text-sm text-gray-500">Cook Time (min)</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {selectedRecipe.servings}
+                  </div>
+                  <div className="text-sm text-gray-500">Servings</div>
+                </div>
+                <div className="text-center">
+                  <div className={`text-2xl font-bold ${
+                    selectedRecipe.difficulty === 'easy' ? 'text-green-600' :
+                    selectedRecipe.difficulty === 'medium' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {selectedRecipe.difficulty}
+                  </div>
+                  <div className="text-sm text-gray-500">Difficulty</div>
+                </div>
+              </div>
+
+              {/* Ingredients */}
+              {recipeIngredients[selectedRecipe.id] && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Ingredients
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {recipeIngredients[selectedRecipe.id].map((ingredient: RecipeIngredient) => (
+                      <div key={ingredient.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-gray-900">
+                          {ingredient.name}
+                          {ingredient.optional && (
+                            <span className="text-gray-500 text-sm ml-1">(optional)</span>
+                          )}
+                        </span>
+                        <span className="text-gray-600 text-sm">
+                          {ingredient.amount} {ingredient.unit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cooking Instructions */}
+              {selectedRecipe.instructions && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Cooking Instructions
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                      {selectedRecipe.instructions}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Nutrition Facts */}
+              {selectedRecipe.nutritionFacts && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Nutrition Facts (per serving)
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {selectedRecipe.nutritionFacts.calories && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {selectedRecipe.nutritionFacts.calories}
+                        </div>
+                        <div className="text-sm text-gray-500">Calories</div>
+                      </div>
+                    )}
+                    {selectedRecipe.nutritionFacts.protein && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {selectedRecipe.nutritionFacts.protein}g
+                        </div>
+                        <div className="text-sm text-gray-500">Protein</div>
+                      </div>
+                    )}
+                    {selectedRecipe.nutritionFacts.carbs && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-yellow-600">
+                          {selectedRecipe.nutritionFacts.carbs}g
+                        </div>
+                        <div className="text-sm text-gray-500">Carbs</div>
+                      </div>
+                    )}
+                    {selectedRecipe.nutritionFacts.fat && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600">
+                          {selectedRecipe.nutritionFacts.fat}g
+                        </div>
+                        <div className="text-sm text-gray-500">Fat</div>
+                      </div>
+                    )}
+                    {selectedRecipe.nutritionFacts.fiber && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {selectedRecipe.nutritionFacts.fiber}g
+                        </div>
+                        <div className="text-sm text-gray-500">Fiber</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <Link
+                  to={`/recipe/${selectedRecipe.id}/customize`}
+                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 text-center font-medium"
+                >
+                  Customize This Recipe
+                </Link>
+                <button
+                  onClick={() => setSelectedRecipe(null)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
