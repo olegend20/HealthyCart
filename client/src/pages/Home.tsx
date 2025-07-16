@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import MealPlanWizard from "../components/MealPlanWizard";
+import MultiMealPlanDemo from "../components/MultiMealPlanDemo";
 
 export default function Home() {
   const [showWizard, setShowWizard] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['/api/auth/user'],
@@ -53,12 +55,20 @@ export default function Home() {
                   Ready to plan your next meals?
                 </p>
               </div>
-              <button
-                onClick={() => setShowWizard(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
-              >
-                Create New Meal Plan
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDemo(true)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium text-sm"
+                >
+                  View Demo
+                </button>
+                <button
+                  onClick={() => setShowWizard(true)}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
+                >
+                  Create New Meal Plan
+                </button>
+              </div>
             </div>
 
             {/* Quick Stats */}
@@ -202,6 +212,10 @@ export default function Home() {
           </div>
         )}
       </div>
+      
+      {showDemo && (
+        <MultiMealPlanDemo onClose={() => setShowDemo(false)} />
+      )}
     </div>
   );
 }
