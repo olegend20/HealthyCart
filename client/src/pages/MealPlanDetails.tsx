@@ -224,6 +224,15 @@ export default function MealPlanDetails() {
         setSelectedRecipe(result.newRecipe);
       }
 
+      // Reload the grocery list to reflect the updated ingredients
+      const groceryResponse = await fetch(`/api/grocery-lists/meal-plan/${mealPlan.id}`, { credentials: 'include' });
+      if (groceryResponse.ok) {
+        const groceryData = await groceryResponse.json();
+        if (groceryData.length > 0) {
+          setGroceryList(groceryData[0]);
+        }
+      }
+
     } catch (error) {
       console.error('Error replacing recipe:', error);
       alert('Failed to replace recipe. Please try again.');

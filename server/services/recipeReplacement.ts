@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { 
   type InsertRecipe, 
   type InsertRecipeIngredient,
+  type InsertGroceryListItem,
   type Recipe,
   type RecipeIngredient,
   type HouseholdMember,
@@ -183,6 +184,9 @@ IMPORTANT: For ingredient amounts, use specific measurements like "1", "2", "1/2
     // Update the meal to use the new recipe
     await storage.updateMeal(request.mealId, { recipeId: newRecipe.id });
 
+    // Update grocery list to reflect the new recipe ingredients
+    await updateGroceryListForReplacedRecipe(request.mealPlanId, request.currentRecipeId, newRecipe.id, ingredientsData);
+
     console.log("Recipe replacement completed successfully");
 
     return {
@@ -194,4 +198,137 @@ IMPORTANT: For ingredient amounts, use specific measurements like "1", "2", "1/2
     console.error("Error replacing recipe:", error);
     throw new Error("Failed to replace recipe");
   }
+}
+
+async function updateGroceryListForReplacedRecipe(
+  mealPlanId: number, 
+  oldRecipeId: number, 
+  newRecipeId: number, 
+  newIngredients: RecipeIngredient[]
+) {
+  try {
+    // Get all meals for this meal plan to rebuild the grocery list
+    const meals = await storage.getMeals(mealPlanId);
+    if (meals.length === 0) {
+      console.log("No meals found for meal plan");
+      return;
+    }
+
+    // Get the grocery list for this meal plan
+    const groceryLists = await storage.getGroceryLists(mealPlanId);
+    if (groceryLists.length === 0) {
+      console.log("No grocery list found for meal plan");
+      return;
+    }
+
+    const groceryList = groceryLists[0];
+
+    // Create consolidated ingredient map from all current meals
+    const ingredientMap = new Map<string, {
+      name: string;
+      amount: number;
+      unit: string;
+      category: string;
+      estimatedPrice: number;
+    }>();
+
+    // Process ingredients from all meals (including the replaced one)
+    for (const meal of meals) {
+      const recipeId = meal.recipeId === oldRecipeId ? newRecipeId : meal.recipeId;
+      const ingredients = recipeId === newRecipeId ? newIngredients : await storage.getRecipeIngredients(recipeId);
+      
+      ingredients.forEach(ingredient => {
+        const key = ingredient.name.toLowerCase();
+        const amount = parseFloat(ingredient.amount) || 1;
+        const estimatedPrice = getEstimatedPrice(ingredient.name, ingredient.category);
+        
+        if (ingredientMap.has(key)) {
+          const existing = ingredientMap.get(key)!;
+          existing.amount += amount;
+          existing.estimatedPrice += estimatedPrice;
+        } else {
+          ingredientMap.set(key, {
+            name: ingredient.name,
+            amount: amount,
+            unit: ingredient.unit || '',
+            category: ingredient.category || 'other',
+            estimatedPrice: estimatedPrice
+          });
+        }
+      });
+    }
+
+    // Clear existing grocery list items and rebuild
+    await clearGroceryListItems(groceryList.id);
+
+    // Add consolidated ingredients to grocery list
+    for (const [_, ingredient] of ingredientMap) {
+      const groceryItem: InsertGroceryListItem = {
+        groceryListId: groceryList.id,
+        name: ingredient.name,
+        amount: ingredient.amount,
+        unit: ingredient.unit,
+        category: ingredient.category,
+        estimatedPrice: ingredient.estimatedPrice,
+        aisle: getCategoryAisle(ingredient.category)
+      };
+      
+      await storage.createGroceryListItem(groceryItem);
+    }
+
+    // Update total cost
+    const newTotalCost = Array.from(ingredientMap.values()).reduce((sum, ing) => sum + ing.estimatedPrice, 0);
+
+    await storage.updateGroceryList(groceryList.id, {
+      totalCost: newTotalCost.toFixed(2)
+    });
+
+    console.log("Grocery list updated successfully after recipe replacement");
+  } catch (error) {
+    console.error("Error updating grocery list:", error);
+    // Don't throw error here - recipe replacement should still succeed even if grocery list update fails
+  }
+}
+
+async function clearGroceryListItems(groceryListId: number) {
+  try {
+    // This is a simplified approach - in a real implementation, you'd want to add a method to storage
+    // For now, we'll use a direct SQL query
+    const { db } = await import('../db');
+    await db.execute(`DELETE FROM grocery_list_items WHERE grocery_list_id = ${groceryListId}`);
+  } catch (error) {
+    console.error("Error clearing grocery list items:", error);
+  }
+}
+
+function getEstimatedPrice(ingredientName: string, category: string): number {
+  const basePrices: { [key: string]: number } = {
+    'protein': 5.99,
+    'meat': 7.99,
+    'dairy': 3.49,
+    'produce': 2.99,
+    'vegetable': 2.99,
+    'grain': 2.49,
+    'spice': 1.99,
+    'condiment': 3.99,
+    'other': 2.99
+  };
+  
+  return basePrices[category] || basePrices['other'];
+}
+
+function getCategoryAisle(category: string): string {
+  const aisleMap: { [key: string]: string } = {
+    'protein': 'Meat & Seafood',
+    'meat': 'Meat & Seafood',
+    'dairy': 'Dairy',
+    'produce': 'Produce',
+    'vegetable': 'Produce',
+    'grain': 'Pantry',
+    'spice': 'Spices & Seasonings',
+    'condiment': 'Condiments',
+    'other': 'Pantry'
+  };
+  
+  return aisleMap[category] || 'Pantry';
 }
