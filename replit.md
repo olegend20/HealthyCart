@@ -112,6 +112,17 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 16, 2025. Recipe Rejection & AI Replacement Feature implementation
+  - Added thumbs down functionality for recipe rejection in meal plan details
+  - Created recipeReplacement service using OpenAI for intelligent recipe substitution
+  - Added /api/meals/:mealId/replace-recipe endpoint for AI-powered recipe replacement
+  - Fixed database schema issue: changed recipe_ingredients.amount from decimal to varchar
+  - AI replacement considers user preferences, dietary restrictions, and meal plan goals
+  - Real-time UI updates when recipes are replaced with loading states
+  - Generates completely new recipes that avoid rejected ingredients and styles
+  - Maintains meal plan consistency with serving sizes and meal types
+  - Available in both meal plan cards and detailed recipe modal views
+
 - July 16, 2025. Phase 2 Recipe Management & Customization implementation
   - Implemented comprehensive Recipe Library with search, filtering, and categorization
   - Built RecipeCustomizer component with AI-powered recipe modification

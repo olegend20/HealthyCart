@@ -125,6 +125,8 @@ Return JSON in this exact format:
       "optional": false
     }
   ]
+
+IMPORTANT: For ingredient amounts, use specific measurements like "1", "2", "1/2", "1/4" instead of vague terms like "to taste" or "as needed". If seasoning, use "1 tsp" or "1/4 tsp" instead of "to taste".
 }`;
 
     const response = await openai.chat.completions.create({
@@ -168,7 +170,7 @@ Return JSON in this exact format:
       const ingredientData: InsertRecipeIngredient = {
         recipeId: newRecipe.id,
         name: ing.name,
-        amount: ing.amount,
+        amount: String(ing.amount), // Ensure amount is stored as string
         unit: ing.unit,
         category: ing.category,
         optional: ing.optional || false

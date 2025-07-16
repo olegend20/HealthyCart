@@ -118,7 +118,7 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   id: serial("id").primaryKey(),
   recipeId: integer("recipe_id").references(() => recipes.id, { onDelete: "cascade" }).notNull(),
   name: varchar("name").notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }),
+  amount: varchar("amount"), // Changed from decimal to varchar to support "to taste", "1/2 cup", etc.
   unit: varchar("unit"),
   category: varchar("category"), // 'produce', 'meat', 'dairy', etc.
   optional: boolean("optional").default(false),
