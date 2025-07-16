@@ -5,6 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGeneratorFixed";
 import { generateMultiMealPlan, type MultiMealPlanRequest } from "./services/multiMealPlanGenerator";
 import { generateCustomizedRecipe, type RecipeCustomizationRequest } from "./services/recipeCustomizer";
+import { replaceRecipeWithAI, type RecipeReplacementRequest } from "./services/recipeReplacement";
 import { 
   insertHouseholdMemberSchema, 
   insertCookingEquipmentSchema, 
@@ -460,6 +461,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching grocery list:", error);
       res.status(500).json({ message: "Failed to fetch grocery list" });
+    }
+  });
+
+  // Recipe replacement route
+  app.post('/api/meals/:mealId/replace-recipe', isAuthenticated, async (req: any, res) => {
+    try {
+      const mealId = parseInt(req.params.mealId);
+      const userId = req.user.claims.sub;
+      
+      if (isNaN(mealId)) {
+        return res.status(400).json({ message: "Invalid meal ID" });
+      }
+
+      const request: RecipeReplacementRequest = {
+        userId,
+        mealId,
+        currentRecipeId: req.body.currentRecipeId,
+        mealPlanId: req.body.mealPlanId,
+        mealType: req.body.mealType,
+        servings: req.body.servings,
+        rejectionReason: req.body.rejectionReason
+      };
+
+      const result = await replaceRecipeWithAI(request);
+      res.json(result);
+    } catch (error) {
+      console.error("Error replacing recipe:", error);
+      res.status(500).json({ message: "Failed to replace recipe" });
     }
   });
 

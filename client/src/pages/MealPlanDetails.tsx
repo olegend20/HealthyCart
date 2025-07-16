@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, Calendar, Clock, Users, DollarSign, CheckCircle, X } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Users, DollarSign, CheckCircle, X, ThumbsDown, Loader2 } from "lucide-react";
 
 interface MealPlan {
   id: number;
@@ -78,6 +78,7 @@ export default function MealPlanDetails() {
   const [groceryList, setGroceryList] = useState<GroceryList | null>(null);
   const [recipeIngredients, setRecipeIngredients] = useState<{ [key: number]: RecipeIngredient[] }>({});
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [replacingRecipe, setReplacingRecipe] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -175,6 +176,60 @@ export default function MealPlanDetails() {
       mealsByDate[dateKey].push(meal);
     });
     return mealsByDate;
+  };
+
+  const handleReplaceRecipe = async (meal: Meal) => {
+    if (!mealPlan) return;
+    
+    try {
+      setReplacingRecipe(meal.id);
+      
+      const response = await fetch(`/api/meals/${meal.id}/replace-recipe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentRecipeId: meal.recipe.id,
+          mealPlanId: mealPlan.id,
+          mealType: meal.mealType,
+          servings: meal.servings,
+          rejectionReason: 'User rejected this recipe'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to replace recipe');
+      }
+
+      const result = await response.json();
+      
+      // Update the meal with the new recipe
+      const updatedMeals = meals.map(m => 
+        m.id === meal.id 
+          ? { ...m, recipe: result.newRecipe }
+          : m
+      );
+      setMeals(updatedMeals);
+
+      // Update recipe ingredients
+      setRecipeIngredients(prev => ({
+        ...prev,
+        [result.newRecipe.id]: result.ingredients
+      }));
+
+      // If the replaced recipe was selected, update the selected recipe
+      if (selectedRecipe?.id === meal.recipe.id) {
+        setSelectedRecipe(result.newRecipe);
+      }
+
+    } catch (error) {
+      console.error('Error replacing recipe:', error);
+      alert('Failed to replace recipe. Please try again.');
+    } finally {
+      setReplacingRecipe(null);
+    }
   };
 
   const mealsByDate = getMealsByDate();
@@ -317,6 +372,23 @@ export default function MealPlanDetails() {
                           >
                             Customize Recipe
                           </Link>
+                          <button
+                            onClick={() => handleReplaceRecipe(meal)}
+                            disabled={replacingRecipe === meal.id}
+                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center space-x-1"
+                          >
+                            {replacingRecipe === meal.id ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <span>Replacing...</span>
+                              </>
+                            ) : (
+                              <>
+                                <ThumbsDown className="h-3 w-3" />
+                                <span>Don't Like</span>
+                              </>
+                            )}
+                          </button>
                         </div>
 
                         {/* Ingredients */}
@@ -590,6 +662,19 @@ export default function MealPlanDetails() {
                 >
                   Customize This Recipe
                 </Link>
+                <button
+                  onClick={() => {
+                    const meal = meals.find(m => m.recipe.id === selectedRecipe.id);
+                    if (meal) {
+                      setSelectedRecipe(null);
+                      handleReplaceRecipe(meal);
+                    }
+                  }}
+                  className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 flex items-center space-x-2"
+                >
+                  <ThumbsDown className="h-4 w-4" />
+                  <span>Don't Like Recipe</span>
+                </button>
                 <button
                   onClick={() => setSelectedRecipe(null)}
                   className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
