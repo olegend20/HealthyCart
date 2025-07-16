@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGeneratorFixed";
 import { generateMultiMealPlan, type MultiMealPlanRequest } from "./services/multiMealPlanGenerator";
+import { generateCustomizedRecipe, type RecipeCustomizationRequest } from "./services/recipeCustomizer";
 import { 
   insertHouseholdMemberSchema, 
   insertCookingEquipmentSchema, 
@@ -163,6 +164,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching recipe ingredients:", error);
       res.status(500).json({ message: "Failed to fetch recipe ingredients" });
+    }
+  });
+
+  // Recipe management routes
+  app.get('/api/recipes', isAuthenticated, async (req: any, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = (page - 1) * limit;
+      
+      const recipes = await storage.getRecipes(limit, offset);
+      res.json(recipes);
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+      res.status(500).json({ message: "Failed to fetch recipes" });
+    }
+  });
+
+  app.get('/api/recipes/search', isAuthenticated, async (req: any, res) => {
+    try {
+      const query = req.query.q as string || '';
+      const tags = req.query.tags ? (req.query.tags as string).split(',') : [];
+      
+      const recipes = await storage.searchRecipes(query, tags);
+      res.json(recipes);
+    } catch (error) {
+      console.error("Error searching recipes:", error);
+      res.status(500).json({ message: "Failed to search recipes" });
+    }
+  });
+
+  app.get('/api/recipes/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const recipe = await storage.getRecipe(id);
+      
+      if (!recipe) {
+        return res.status(404).json({ message: "Recipe not found" });
+      }
+      
+      res.json(recipe);
+    } catch (error) {
+      console.error("Error fetching recipe:", error);
+      res.status(500).json({ message: "Failed to fetch recipe" });
+    }
+  });
+
+  app.post('/api/recipes/:id/customize', isAuthenticated, async (req: any, res) => {
+    try {
+      const recipeId = parseInt(req.params.id);
+      const { originalRecipe, ingredients, modifications, servingMultiplier } = req.body;
+      
+      // Generate customized recipe using OpenAI
+      const customizedRecipe = await generateCustomizedRecipe({
+        originalRecipe,
+        ingredients,
+        modifications,
+        servingMultiplier
+      });
+      
+      res.json(customizedRecipe);
+    } catch (error) {
+      console.error("Error customizing recipe:", error);
+      res.status(500).json({ message: "Failed to customize recipe" });
+    }
+  });
+
+  app.post('/api/recipes', isAuthenticated, async (req: any, res) => {
+    try {
+      const recipeData = req.body;
+      const newRecipe = await storage.createRecipe(recipeData);
+      
+      // Create ingredients
+      if (recipeData.ingredients && recipeData.ingredients.length > 0) {
+        for (const ingredient of recipeData.ingredients) {
+          await storage.createRecipeIngredient({
+            recipeId: newRecipe.id,
+            name: ingredient.name,
+            amount: ingredient.amount,
+            unit: ingredient.unit,
+            category: ingredient.category,
+            optional: ingredient.optional || false
+          });
+        }
+      }
+      
+      res.json(newRecipe);
+    } catch (error) {
+      console.error("Error creating recipe:", error);
+      res.status(500).json({ message: "Failed to create recipe" });
     }
   });
 

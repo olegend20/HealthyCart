@@ -112,6 +112,20 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 16, 2025. Phase 2 Recipe Management & Customization implementation
+  - Implemented comprehensive Recipe Library with search, filtering, and categorization
+  - Built RecipeCustomizer component with AI-powered recipe modification
+  - Added recipe management API endpoints (/api/recipes, /api/recipes/search, /api/recipes/:id/customize)
+  - Created recipeCustomizer service using OpenAI for intelligent recipe adaptation
+  - Integrated recipe library and customizer into main application routing
+  - Added 12 modification options (healthier, vegetarian, vegan, gluten-free, dairy-free, etc.)
+  - Implemented serving size scaling with real-time ingredient adjustment
+  - Added recipe saving functionality to preserve customized recipes
+  - Enhanced recipe display with nutrition facts, difficulty ratings, and cooking times
+  - Created comprehensive recipe browsing interface with pagination and visual cards
+  - Added recipe sharing and detailed ingredient viewing capabilities
+  - Integrated with existing meal plan recipes for seamless customization workflow
+
 - July 16, 2025. Phase 1 Multi-Target Foundation implementation
   - Implemented Phase 1 of multi-target meal planning system with enhanced database schema
   - Added meal_plan_groups table for organizing multi-target meal plans
