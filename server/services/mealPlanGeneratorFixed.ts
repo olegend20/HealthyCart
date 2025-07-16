@@ -106,6 +106,7 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
     console.log("Calling OpenAI service...");
     const generatedPlan = await generateMealPlan(openaiRequest);
     console.log("OpenAI response received, processing...");
+    console.log("Processing", generatedPlan.meals?.length || 0, "meals from OpenAI");
 
     // Calculate end date
     const endDate = new Date(request.startDate);
@@ -125,6 +126,67 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
 
     const mealPlan = await storage.createMealPlan(mealPlanData);
     console.log("Created meal plan with ID:", mealPlan.id);
+
+    // Create meals from OpenAI response
+    const createdMeals = [];
+    if (generatedPlan.meals && generatedPlan.meals.length > 0) {
+      for (const [index, meal] of generatedPlan.meals.entries()) {
+        console.log(`Creating meal ${index + 1}/${generatedPlan.meals.length}: ${meal.name}`);
+        
+        // Create recipe first
+        const recipeData: InsertRecipe = {
+          name: meal.name,
+          description: meal.description || "",
+          instructions: meal.instructions || "No instructions provided",
+          prepTime: meal.prepTime || 30,
+          cookTime: meal.cookTime || 30,
+          servings: meal.servings || 4,
+          difficulty: meal.difficulty || "medium",
+          cuisine: meal.cuisine || "American",
+          tags: meal.tags || [],
+          nutritionFacts: meal.nutritionFacts || {},
+          rating: "4.0"
+        };
+
+        const recipe = await storage.createRecipe(recipeData);
+        console.log("Created recipe with ID:", recipe.id);
+
+        // Create recipe ingredients
+        if (meal.ingredients && meal.ingredients.length > 0) {
+          for (const ingredient of meal.ingredients) {
+            const ingredientData: InsertRecipeIngredient = {
+              recipeId: recipe.id,
+              name: ingredient.name,
+              amount: ingredient.amount.toString(),
+              unit: ingredient.unit,
+              category: ingredient.category || "other",
+              optional: false
+            };
+            await storage.createRecipeIngredient(ingredientData);
+          }
+        }
+
+        // Create meal instance
+        const mealDate = new Date(request.startDate);
+        mealDate.setDate(mealDate.getDate() + index); // Distribute meals across days
+
+        const mealRecord: InsertMeal = {
+          mealPlanId: mealPlan.id,
+          recipeId: recipe.id,
+          date: mealDate,
+          mealType: meal.mealType || "dinner",
+          servings: meal.servings || 4,
+          status: "planned",
+          estimatedCost: meal.estimatedCost?.toString() || "0.00"
+        };
+
+        const createdMeal = await storage.createMeal(mealRecord);
+        createdMeals.push({
+          ...createdMeal,
+          recipe: recipe
+        });
+      }
+    }
 
     // Create a basic grocery list for the meal plan
     const groceryListData: InsertGroceryList = {
@@ -147,32 +209,49 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
       aisle?: string;
     }> = [];
 
-    // Add some basic items from the meal plan
+    // Create consolidated grocery list from all meal ingredients
+    const ingredientMap = new Map<string, { amount: number; unit: string; category: string; }>();
+    
     if (generatedPlan.meals && generatedPlan.meals.length > 0) {
-      for (const meal of generatedPlan.meals.slice(0, 3)) { // Just take first 3 meals to avoid too many items
-        for (const ingredient of meal.ingredients.slice(0, 3)) { // First 3 ingredients per meal
-          const itemData: InsertGroceryListItem = {
-            groceryListId: groceryList.id,
-            name: ingredient.name,
-            amount: ingredient.amount.toString(),
-            unit: ingredient.unit,
-            category: ingredient.category,
-            estimatedPrice: (Math.random() * 5 + 1).toString(), // Random price between $1-6
-            purchased: false,
-            aisle: getCategoryAisle(ingredient.category)
-          };
-
-          const item = await storage.createGroceryListItem(itemData);
-          groceryItems.push({
-            id: item.id,
-            name: item.name,
-            amount: parseFloat(item.amount || "0"),
-            unit: item.unit || "",
-            category: item.category || "",
-            estimatedPrice: parseFloat(item.estimatedPrice || "0"),
-            aisle: item.aisle || undefined
-          });
+      for (const meal of generatedPlan.meals) {
+        for (const ingredient of meal.ingredients) {
+          const key = ingredient.name.toLowerCase();
+          if (ingredientMap.has(key)) {
+            const existing = ingredientMap.get(key)!;
+            existing.amount += ingredient.amount;
+          } else {
+            ingredientMap.set(key, {
+              amount: ingredient.amount,
+              unit: ingredient.unit,
+              category: ingredient.category
+            });
+          }
         }
+      }
+
+      // Create grocery list items from consolidated ingredients
+      for (const [name, details] of ingredientMap) {
+        const itemData: InsertGroceryListItem = {
+          groceryListId: groceryList.id,
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          amount: details.amount.toString(),
+          unit: details.unit,
+          category: details.category,
+          estimatedPrice: (Math.random() * 5 + 1).toString(), // Random price between $1-6
+          purchased: false,
+          aisle: getCategoryAisle(details.category)
+        };
+
+        const item = await storage.createGroceryListItem(itemData);
+        groceryItems.push({
+          id: item.id,
+          name: item.name,
+          amount: parseFloat(item.amount || "0"),
+          unit: item.unit || "",
+          category: item.category || "",
+          estimatedPrice: parseFloat(item.estimatedPrice || "0"),
+          aisle: item.aisle || undefined
+        });
       }
     }
 
@@ -221,7 +300,26 @@ export async function generateCompleteMealPlan(request: MealPlanGenerationReques
         totalCost: parseFloat(mealPlan.totalCost || "0"),
         status: mealPlan.status || "active"
       },
-      meals: [], // We'll implement meal creation in the next step
+      meals: createdMeals.map(meal => ({
+        id: meal.id,
+        name: meal.recipe.name,
+        date: meal.date,
+        mealType: meal.mealType,
+        servings: meal.servings,
+        estimatedCost: parseFloat(meal.estimatedCost || "0"),
+        recipe: {
+          id: meal.recipe.id,
+          name: meal.recipe.name,
+          description: meal.recipe.description || "",
+          prepTime: meal.recipe.prepTime || 30,
+          cookTime: meal.recipe.cookTime || 30,
+          difficulty: meal.recipe.difficulty || "medium",
+          cuisine: meal.recipe.cuisine || "American",
+          tags: meal.recipe.tags || [],
+          nutritionFacts: meal.recipe.nutritionFacts || {},
+          imageUrl: meal.recipe.imageUrl
+        }
+      })),
       groceryList: {
         id: groceryList.id,
         name: groceryList.name,

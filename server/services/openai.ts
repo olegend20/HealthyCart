@@ -143,9 +143,14 @@ Please respond with a complete meal plan in JSON format with the exact structure
     }
 
     console.log("Parsing OpenAI response");
+    console.log("Raw OpenAI response:", content.substring(0, 500) + "...");
     const generatedPlan: GeneratedMealPlan = JSON.parse(content);
     
     console.log("Generated meal plan with", generatedPlan.meals?.length || 0, "meals");
+    console.log("Meal plan structure:", Object.keys(generatedPlan));
+    if (generatedPlan.meals && generatedPlan.meals.length > 0) {
+      console.log("First meal example:", generatedPlan.meals[0]);
+    }
     return generatedPlan;
   } catch (error) {
     console.error("Error generating meal plan:", error);
