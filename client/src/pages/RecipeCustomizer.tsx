@@ -237,6 +237,15 @@ export default function RecipeCustomizer() {
                   ))}
                 </div>
               </div>
+
+              {recipe.instructions && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Instructions</h4>
+                  <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-line">
+                    {recipe.instructions}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -364,8 +373,8 @@ export default function RecipeCustomizer() {
               </div>
 
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Instructions</h4>
-                <div className="text-gray-700 text-sm whitespace-pre-line">
+                <h4 className="font-medium text-gray-900 mb-2">Updated Instructions</h4>
+                <div className="bg-gray-50 rounded-lg p-4 text-gray-700 text-sm whitespace-pre-line leading-relaxed">
                   {customizedRecipe.instructions}
                 </div>
               </div>

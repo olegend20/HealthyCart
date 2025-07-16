@@ -7,6 +7,7 @@ interface Recipe {
   id: number;
   name: string;
   description: string;
+  instructions: string;
   prepTime: number;
   cookTime: number;
   servings: number;
@@ -52,7 +53,7 @@ export default function RecipeLibrary() {
       const response = await fetch(`/api/recipes/${selectedRecipe.id}/ingredients`);
       return response.json();
     },
-    enabled: !!selectedRecipe && showIngredients
+    enabled: !!selectedRecipe
   });
 
   const searchRecipesMutation = useMutation({
@@ -139,7 +140,6 @@ export default function RecipeLibrary() {
           <button
             onClick={() => {
               setSelectedRecipe(recipe);
-              setShowIngredients(true);
             }}
             className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700"
           >
@@ -238,6 +238,69 @@ export default function RecipeLibrary() {
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {selectedRecipe.instructions && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Cooking Instructions
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                    {selectedRecipe.instructions}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedRecipe.nutritionFacts && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Nutrition Facts (per serving)
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {selectedRecipe.nutritionFacts.calories && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {selectedRecipe.nutritionFacts.calories}
+                      </div>
+                      <div className="text-sm text-gray-500">Calories</div>
+                    </div>
+                  )}
+                  {selectedRecipe.nutritionFacts.protein && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {selectedRecipe.nutritionFacts.protein}g
+                      </div>
+                      <div className="text-sm text-gray-500">Protein</div>
+                    </div>
+                  )}
+                  {selectedRecipe.nutritionFacts.carbs && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {selectedRecipe.nutritionFacts.carbs}g
+                      </div>
+                      <div className="text-sm text-gray-500">Carbs</div>
+                    </div>
+                  )}
+                  {selectedRecipe.nutritionFacts.fat && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {selectedRecipe.nutritionFacts.fat}g
+                      </div>
+                      <div className="text-sm text-gray-500">Fat</div>
+                    </div>
+                  )}
+                  {selectedRecipe.nutritionFacts.fiber && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {selectedRecipe.nutritionFacts.fiber}g
+                      </div>
+                      <div className="text-sm text-gray-500">Fiber</div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
