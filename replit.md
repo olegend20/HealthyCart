@@ -112,6 +112,19 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 16, 2025. Comprehensive meal planning system design
+  - Created comprehensive meal planning system design document (MEAL_PLANNING_SYSTEM_DESIGN.md)
+  - Expanded feature tracker with 21 detailed features across 5 implementation phases
+  - Designed multi-target meal planning for different household groups (adults, kids, dietary restrictions)
+  - Planned intelligent ingredient optimization to reduce waste and costs across multiple meals
+  - Created detailed user flow from meal setup through AI generation to shopping list
+  - Added comprehensive AI integration strategy with enhanced prompting
+  - Designed visual ingredient overlap analysis and interactive recipe modification
+  - Updated feature toggle system with 20 environment variables for granular control
+  - Fixed OpenAI response format parsing issue where API returned {"mealPlan": [...]} instead of {"meals": [...]}
+  - Enhanced AI prompt with explicit JSON structure specification
+  - Added debugging logs to track meal creation and ingredient consolidation
+
 - July 11, 2025. Meal plan details view and infinite loop debugging
   - Fixed critical React infinite loop issue caused by Radix UI components
   - Replaced problematic UI components with native HTML elements
