@@ -347,6 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           goals: plan.goals,
           mealTypes: plan.mealTypes,
           duration: plan.duration,
+          mealCount: plan.mealCount || 5, // Default to 5 meals if not specified
           budget: plan.budget,
           startDate: new Date(plan.startDate)
         }))

@@ -205,6 +205,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
         goals: plan.goals,
         mealTypes: plan.mealTypes,
         duration: plan.duration,
+        mealCount: plan.mealCount,
         budget: plan.budget,
         startDate: plan.startDate
       }))
