@@ -162,13 +162,24 @@ export default function CleanHome() {
                 <p className="text-blue-100 mb-4">
                   Ready to plan your next week of delicious, budget-friendly meals?
                 </p>
-                <Button 
-                  className="bg-white text-primary font-semibold hover:bg-gray-100"
-                  onClick={() => setShowMealPlanForm(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Meal Plan
-                </Button>
+                <div className="flex flex-wrap gap-3">
+                  <Button 
+                    className="bg-white text-primary font-semibold hover:bg-gray-100"
+                    onClick={() => setShowMealPlanForm(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Meal Plan
+                  </Button>
+                  <Button 
+                    className="bg-white/10 text-white border border-white/20 hover:bg-white/20"
+                    asChild
+                  >
+                    <Link href="/multi-meal-plan-generator">
+                      <Users className="h-4 w-4 mr-2" />
+                      Multi-Plan Generator
+                    </Link>
+                  </Button>
+                </div>
               </>
             )}
           </div>

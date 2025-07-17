@@ -24,6 +24,37 @@ export interface MealPlanRequest {
   mealTypes: string[]; // ['breakfast', 'lunch', 'dinner']
 }
 
+export interface MultiMealPlanRequest {
+  householdMembers: Array<{
+    name: string;
+    age?: number;
+    dietaryRestrictions: string[];
+    allergies: string[];
+    preferences: string[];
+    dislikes: string[];
+  }>;
+  cookingEquipment: Array<{
+    name: string;
+    type: string;
+  }>;
+  mealPlans: Array<{
+    name: string;
+    targetGroup: string;
+    selectedMembers: Array<{
+      name: string;
+      age?: number;
+      dietaryRestrictions: string[];
+      allergies: string[];
+      preferences: string[];
+      dislikes: string[];
+    }>;
+    goals: string[];
+    mealTypes: string[];
+    duration: number;
+    budget?: number;
+  }>;
+}
+
 export interface GeneratedMealPlan {
   meals: Array<{
     name: string;
@@ -71,6 +102,80 @@ export interface GeneratedMealPlan {
       goal: string;
       progress: number;
       recommendations: string[];
+    }>;
+  };
+}
+
+export interface GeneratedMultiMealPlan {
+  mealPlans: Array<{
+    name: string;
+    targetGroup: string;
+    meals: Array<{
+      name: string;
+      description: string;
+      date: string;
+      mealType: string;
+      servings: number;
+      prepTime: number;
+      cookTime: number;
+      difficulty: string;
+      cuisine: string;
+      ingredients: Array<{
+        name: string;
+        amount: number;
+        unit: string;
+        category: string;
+      }>;
+      instructions: string;
+      estimatedCost: number;
+      tags: string[];
+      nutritionFacts: {
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+        fiber: number;
+      };
+      equipmentUsed: string[];
+    }>;
+    totalEstimatedCost: number;
+  }>;
+  crossPlanOptimization: {
+    sharedIngredients: Array<{
+      name: string;
+      totalAmount: number;
+      unit: string;
+      usedInPlans: string[];
+      estimatedSavings: number;
+    }>;
+    consolidatedShoppingList: Array<{
+      name: string;
+      totalAmount: number;
+      unit: string;
+      category: string;
+      estimatedPrice: number;
+      aisle?: string;
+    }>;
+    totalSavings: number;
+    wasteReduction: string;
+  };
+  nutritionSummary: {
+    overallAverages: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    };
+    planComparisons: Array<{
+      planName: string;
+      dailyAverages: {
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+        fiber: number;
+      };
     }>;
   };
 }
@@ -245,6 +350,181 @@ Please respond with a complete meal plan in JSON format with this exact structur
       console.error("Error stack:", error.stack);
     }
     throw new Error(`Failed to generate meal plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+export async function generateMultiMealPlan(request: MultiMealPlanRequest): Promise<GeneratedMultiMealPlan> {
+  const systemPrompt = `You are an expert meal planning assistant specializing in creating multiple coordinated meal plans that maximize ingredient overlap and cost efficiency. Your expertise includes:
+
+1. Cross-plan ingredient optimization to minimize waste and costs
+2. Nutritional balance across different target groups (adults, kids, dietary restrictions)
+3. Strategic ingredient purchasing to maximize savings
+4. Age-appropriate meal planning for different family groups
+5. Budget-conscious meal planning across multiple plans
+
+Create coordinated meal plans that prioritize ingredient overlap between all plans while respecting individual dietary needs and preferences.`;
+
+  const userPrompt = `Please create ${request.mealPlans.length} coordinated meal plans with maximum ingredient overlap for cost savings:
+
+AVAILABLE HOUSEHOLD MEMBERS:
+${request.householdMembers.map(member => `
+- ${member.name} (${member.age ? `${member.age} years old` : 'age not specified'})
+  - Dietary restrictions: ${member.dietaryRestrictions.join(', ') || 'None'}
+  - Allergies: ${member.allergies.join(', ') || 'None'}
+  - Preferences: ${member.preferences.join(', ') || 'None specified'}
+  - Dislikes: ${member.dislikes.join(', ') || 'None specified'}
+`).join('')}
+
+AVAILABLE COOKING EQUIPMENT:
+${request.cookingEquipment.map(eq => `- ${eq.name} (${eq.type})`).join('\n')}
+
+MEAL PLANS TO CREATE:
+${request.mealPlans.map((plan, index) => `
+Plan ${index + 1}: ${plan.name}
+- Target Group: ${plan.targetGroup}
+- Duration: ${plan.duration} days
+- Meal Types: ${plan.mealTypes.join(', ')}
+- Goals: ${plan.goals.join(', ')}
+- Budget: ${plan.budget ? `$${plan.budget}` : 'Not specified'}
+- Members: ${plan.selectedMembers.map(m => m.name).join(', ')}
+  ${plan.selectedMembers.map(member => `
+  - ${member.name}: allergies [${member.allergies.join(', ') || 'None'}], preferences [${member.preferences.join(', ') || 'None'}], dislikes [${member.dislikes.join(', ') || 'None'}]`).join('')}
+`).join('')}
+
+CRITICAL REQUIREMENTS:
+1. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
+2. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
+3. **SAFETY FIRST**: Ensure all meals are safe for their target groups (respect allergies)
+4. **AGE-APPROPRIATE**: Consider target group preferences (kids vs adults)
+5. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
+6. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
+7. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
+
+Please respond with a complete multi-meal plan in JSON format with this exact structure:
+{
+  "mealPlans": [
+    {
+      "name": "Adult Meal Plan",
+      "targetGroup": "adults",
+      "meals": [
+        {
+          "name": "Recipe Name",
+          "description": "Brief description",
+          "date": "2025-01-01",
+          "mealType": "dinner",
+          "servings": 4,
+          "prepTime": 30,
+          "cookTime": 25,
+          "difficulty": "medium",
+          "cuisine": "American",
+          "ingredients": [
+            {
+              "name": "chicken breast",
+              "amount": 1.5,
+              "unit": "lbs",
+              "category": "protein"
+            }
+          ],
+          "instructions": "Step by step cooking instructions",
+          "estimatedCost": 12.50,
+          "tags": ["healthy", "high-protein"],
+          "nutritionFacts": {
+            "calories": 350,
+            "protein": 35,
+            "carbs": 20,
+            "fat": 10,
+            "fiber": 5
+          },
+          "equipmentUsed": ["stove", "oven"]
+        }
+      ],
+      "totalEstimatedCost": 85.00
+    }
+  ],
+  "crossPlanOptimization": {
+    "sharedIngredients": [
+      {
+        "name": "yellow onion",
+        "totalAmount": 3,
+        "unit": "lbs",
+        "usedInPlans": ["Adult Meal Plan", "Kids Meal Plan"],
+        "estimatedSavings": 2.50
+      }
+    ],
+    "consolidatedShoppingList": [
+      {
+        "name": "chicken breast",
+        "totalAmount": 4,
+        "unit": "lbs",
+        "category": "protein",
+        "estimatedPrice": 18.00,
+        "aisle": "Meat"
+      }
+    ],
+    "totalSavings": 25.00,
+    "wasteReduction": "Used chicken and vegetables across 3 meal plans"
+  },
+  "nutritionSummary": {
+    "overallAverages": {
+      "calories": 450,
+      "protein": 35,
+      "carbs": 45,
+      "fat": 15,
+      "fiber": 8
+    },
+    "planComparisons": [
+      {
+        "planName": "Adult Meal Plan",
+        "dailyAverages": {
+          "calories": 500,
+          "protein": 40,
+          "carbs": 50,
+          "fat": 18,
+          "fiber": 10
+        }
+      }
+    ]
+  }
+}`;
+
+  try {
+    console.log("Sending multi-meal plan request to OpenAI with model gpt-4o");
+    console.log("Request meal plans:", request.mealPlans.map(p => p.name));
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 6000,
+    });
+
+    console.log("OpenAI multi-meal plan response received");
+    
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error("No content received from OpenAI");
+    }
+
+    console.log("Parsing OpenAI multi-meal plan response");
+    const generatedPlan: GeneratedMultiMealPlan = JSON.parse(content);
+    
+    console.log("Generated multi-meal plan with", generatedPlan.mealPlans?.length || 0, "plans");
+    if (generatedPlan.mealPlans && generatedPlan.mealPlans.length > 0) {
+      console.log("First plan example:", generatedPlan.mealPlans[0].name);
+    }
+    
+    return generatedPlan;
+  } catch (error) {
+    console.error("Error generating multi-meal plan:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    throw new Error(`Failed to generate multi-meal plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

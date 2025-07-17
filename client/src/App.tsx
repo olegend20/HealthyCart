@@ -9,6 +9,7 @@ import Landing from "@/pages/Landing";
 import CleanHome from "@/pages/CleanHome";
 import HouseholdSetup from "@/pages/HouseholdSetup";
 import MealPlanGenerator from "@/pages/MealPlanGenerator";
+import MultiMealPlanGenerator from "@/pages/MultiMealPlanGenerator";
 import MealPlanDetails from "@/pages/MealPlanDetails";
 import GroceryList from "@/pages/GroceryList";
 import FeatureTracker from "@/pages/FeatureTracker";
@@ -27,6 +28,7 @@ function Router() {
           <Route path="/" component={CleanHome} />
           <Route path="/household-setup" component={HouseholdSetup} />
           <Route path="/meal-plan-generator" component={MealPlanGenerator} />
+          <Route path="/multi-meal-plan-generator" component={MultiMealPlanGenerator} />
           <Route path="/meal-plan/:id" component={MealPlanDetails} />
           <Route path="/grocery-list/:id" component={GroceryList} />
           <Route path="/feature-tracker" component={FeatureTracker} />

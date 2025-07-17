@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGeneratorFixed";
 import { generateMultiMealPlan, type MultiMealPlanRequest } from "./services/multiMealPlanGenerator";
+import { generateEnhancedMultiMealPlan, type MultiMealPlanRequest as EnhancedMultiMealPlanRequest } from "./services/enhancedMultiMealPlanGenerator";
 import { generateCustomizedRecipe, type RecipeCustomizationRequest } from "./services/recipeCustomizer";
 import { replaceRecipeWithAI, type RecipeReplacementRequest } from "./services/recipeReplacement";
 import { 
@@ -334,9 +335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { groupName, mealPlans } = req.body;
       
-      console.log("Received multi-meal plan generation request:", { groupName, mealPlansCount: mealPlans.length });
+      console.log("Received enhanced multi-meal plan generation request:", { groupName, mealPlansCount: mealPlans.length });
       
-      const request: MultiMealPlanRequest = {
+      const request: EnhancedMultiMealPlanRequest = {
         userId,
         groupName: groupName || "Multi-Target Meal Planning",
         mealPlans: mealPlans.map((plan: any) => ({
@@ -351,13 +352,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       };
 
-      const generatedMultiPlan = await generateMultiMealPlan(request);
+      const generatedMultiPlan = await generateEnhancedMultiMealPlan(request);
       
       res.json(generatedMultiPlan);
     } catch (error) {
-      console.error("Error generating multi-meal plan:", error);
+      console.error("Error generating enhanced multi-meal plan:", error);
       res.status(500).json({ 
-        message: error instanceof Error ? error.message : "Failed to generate multi-meal plan" 
+        message: error instanceof Error ? error.message : "Failed to generate enhanced multi-meal plan" 
       });
     }
   });

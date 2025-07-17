@@ -112,6 +112,24 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 17, 2025. Multi-Meal Plan Generator with Ingredient Optimization
+  - Implemented comprehensive multi-meal plan generation system for different target groups
+  - Added MultiMealPlanForm component for creating multiple coordinated meal plans (adults, kids, dietary restrictions)
+  - Created enhancedMultiMealPlanGenerator service with advanced OpenAI integration
+  - Added generateMultiMealPlan function to OpenAI service with cross-plan optimization
+  - Implemented ingredient overlap optimization to minimize waste and maximize cost savings
+  - Added support for consolidated grocery lists with shared ingredients across plans
+  - Created MultiMealPlanGenerator page with comprehensive form and benefits display
+  - Added /multi-meal-plan-generator route with sidebar showing household members and equipment
+  - Enhanced home page with "Multi-Plan Generator" button for easy access
+  - Added isUnauthorizedError utility function for proper error handling
+  - OpenAI generates optimized meal plans with shared ingredients like onions, garlic, spices
+  - System tracks ingredient usage across plans and estimates cost savings
+  - Nutrition summary includes overall averages and plan-specific comparisons
+  - Enhanced API with /api/meal-plans/generate-multi endpoint using new generator
+  - Added comprehensive error handling and logging for multi-plan generation
+  - Users can now create separate meal plans for different groups while saving money
+
 - July 16, 2025. Recipe Rejection & AI Replacement Feature implementation
   - Added thumbs down functionality for recipe rejection in meal plan details
   - Created recipeReplacement service using OpenAI for intelligent recipe substitution
