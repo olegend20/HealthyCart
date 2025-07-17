@@ -363,7 +363,16 @@ export async function generateMultiMealPlan(request: MultiMealPlanRequest): Prom
 4. Age-appropriate meal planning for different family groups
 5. Budget-conscious meal planning across multiple plans
 
-Create coordinated meal plans that prioritize ingredient overlap between all plans while respecting individual dietary needs and preferences.`;
+Create coordinated meal plans that prioritize ingredient overlap between all plans while respecting individual dietary needs and preferences.
+
+INSTRUCTION REQUIREMENTS:
+- Provide detailed, step-by-step cooking instructions for each recipe (minimum 5-8 steps)
+- Include specific cooking techniques, temperatures, and timing for each step
+- Explain preparation methods clearly for home cooks with varying skill levels
+- Include tips for optimal results, doneness indicators, and presentation
+- Format instructions as numbered steps with clear, actionable directions
+- Include resting times, seasoning moments, and finishing touches
+- Mention visual cues (golden brown, bubbling, etc.) and internal temperatures where applicable`;
 
   const userPrompt = `Please create ${request.mealPlans.length} coordinated meal plans with maximum ingredient overlap for cost savings:
 
@@ -395,13 +404,14 @@ Plan ${index + 1}: ${plan.name}
 
 CRITICAL REQUIREMENTS:
 1. **EXACT MEAL COUNT**: Each meal plan MUST contain exactly the specified number of meals - no more, no less
-2. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
-3. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
-4. **SAFETY FIRST**: Ensure all meals are safe for their target groups (respect allergies)
-5. **AGE-APPROPRIATE**: Consider target group preferences (kids vs adults)
-6. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
-7. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
-8. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
+2. **DETAILED INSTRUCTIONS**: Each recipe must include comprehensive, step-by-step cooking instructions with specific techniques, temperatures, and timing
+3. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
+4. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
+5. **SAFETY FIRST**: Ensure all meals are safe for their target groups (respect allergies)
+6. **AGE-APPROPRIATE**: Consider target group preferences (kids vs adults)
+7. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
+8. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
+9. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
 
 Please respond with a complete multi-meal plan in JSON format with this exact structure:
 {
@@ -428,7 +438,7 @@ Please respond with a complete multi-meal plan in JSON format with this exact st
               "category": "protein"
             }
           ],
-          "instructions": "Step by step cooking instructions",
+          "instructions": "1. Preheat oven to 400°F (200°C). 2. Season chicken breast with salt and pepper on both sides. 3. Heat olive oil in oven-safe skillet over medium-high heat. 4. Sear chicken breast for 3-4 minutes per side until golden brown. 5. Transfer skillet to preheated oven and cook for 15-20 minutes until internal temperature reaches 165°F (74°C). 6. Let rest for 5 minutes before slicing. 7. Serve immediately with your favorite sides.",
           "estimatedCost": 12.50,
           "tags": ["healthy", "high-protein"],
           "nutritionFacts": {
