@@ -51,6 +51,7 @@ export interface MultiMealPlanRequest {
     goals: string[];
     mealTypes: string[];
     duration: number;
+    mealCount: number;
     budget?: number;
   }>;
 }
@@ -383,6 +384,7 @@ ${request.mealPlans.map((plan, index) => `
 Plan ${index + 1}: ${plan.name}
 - Target Group: ${plan.targetGroup}
 - Duration: ${plan.duration} days
+- Number of Meals: ${plan.mealCount} meals (IMPORTANT: Generate exactly ${plan.mealCount} meals for this plan)
 - Meal Types: ${plan.mealTypes.join(', ')}
 - Goals: ${plan.goals.join(', ')}
 - Budget: ${plan.budget ? `$${plan.budget}` : 'Not specified'}
@@ -392,13 +394,14 @@ Plan ${index + 1}: ${plan.name}
 `).join('')}
 
 CRITICAL REQUIREMENTS:
-1. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
-2. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
-3. **SAFETY FIRST**: Ensure all meals are safe for their target groups (respect allergies)
-4. **AGE-APPROPRIATE**: Consider target group preferences (kids vs adults)
-5. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
-6. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
-7. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
+1. **EXACT MEAL COUNT**: Each meal plan MUST contain exactly the specified number of meals - no more, no less
+2. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
+3. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
+4. **SAFETY FIRST**: Ensure all meals are safe for their target groups (respect allergies)
+5. **AGE-APPROPRIATE**: Consider target group preferences (kids vs adults)
+6. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
+7. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
+8. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
 
 Please respond with a complete multi-meal plan in JSON format with this exact structure:
 {

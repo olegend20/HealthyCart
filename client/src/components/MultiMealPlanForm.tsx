@@ -19,6 +19,7 @@ interface MealPlan {
   goals: string[];
   mealTypes: string[];
   duration: number;
+  mealCount: number;
   budget?: number;
   startDate: string;
 }
@@ -70,6 +71,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
       goals: ['Family-friendly recipes'],
       mealTypes: ['dinner'],
       duration: 7,
+      mealCount: 5,
       startDate: new Date().toISOString().split('T')[0]
     }
   ]);
@@ -120,6 +122,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
       goals: ['Family-friendly recipes'],
       mealTypes: ['dinner'],
       duration: 7,
+      mealCount: 5,
       startDate: new Date().toISOString().split('T')[0]
     };
     setMealPlans([...mealPlans, newPlan]);
@@ -365,7 +368,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor={`duration-${plan.id}`}>Duration</Label>
                       <Select
@@ -379,6 +382,24 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
                           <SelectItem value="3">3 days</SelectItem>
                           <SelectItem value="5">5 days</SelectItem>
                           <SelectItem value="7">7 days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor={`mealCount-${plan.id}`}>Number of Meals</Label>
+                      <Select
+                        value={plan.mealCount.toString()}
+                        onValueChange={(value) => updateMealPlan(plan.id, { mealCount: parseInt(value) })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3 meals</SelectItem>
+                          <SelectItem value="5">5 meals</SelectItem>
+                          <SelectItem value="7">7 meals</SelectItem>
+                          <SelectItem value="10">10 meals</SelectItem>
+                          <SelectItem value="14">14 meals</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

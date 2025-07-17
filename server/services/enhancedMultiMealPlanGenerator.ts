@@ -20,6 +20,7 @@ export interface MultiMealPlanRequest {
     goals: string[];
     mealTypes: string[];
     duration: number;
+    mealCount: number;
     budget?: number;
     startDate: Date;
   }>;
@@ -162,6 +163,7 @@ export async function generateEnhancedMultiMealPlan(request: MultiMealPlanReques
         goals: plan.goals,
         mealTypes: plan.mealTypes,
         duration: plan.duration,
+        mealCount: plan.mealCount,
         budget: plan.budget
       }))
     };
