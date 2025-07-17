@@ -492,7 +492,15 @@ Please respond with a complete multi-meal plan in JSON format with this exact st
 
   try {
     console.log("Sending multi-meal plan request to OpenAI with model gpt-4o");
-    console.log("Request meal plans:", request.mealPlans.map(p => p.name));
+    console.log("Request meal plans:", request.mealPlans.map(p => `${p.name} (${p.mealCount} meals)`));
+    console.log("Full meal plan details:", request.mealPlans.map(p => ({
+      name: p.name,
+      mealCount: p.mealCount,
+      duration: p.duration,
+      targetGroup: p.targetGroup,
+      goals: p.goals,
+      mealTypes: p.mealTypes
+    })));
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -502,7 +510,7 @@ Please respond with a complete multi-meal plan in JSON format with this exact st
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 6000,
+      max_tokens: 8000,
     });
 
     console.log("OpenAI multi-meal plan response received");
@@ -512,12 +520,24 @@ Please respond with a complete multi-meal plan in JSON format with this exact st
       throw new Error("No content received from OpenAI");
     }
 
+    console.log("Raw OpenAI response length:", content.length);
+    console.log("Raw OpenAI response preview:", content.substring(0, 1000));
+    
     console.log("Parsing OpenAI multi-meal plan response");
     const generatedPlan: GeneratedMultiMealPlan = JSON.parse(content);
     
     console.log("Generated multi-meal plan with", generatedPlan.mealPlans?.length || 0, "plans");
     if (generatedPlan.mealPlans && generatedPlan.mealPlans.length > 0) {
-      console.log("First plan example:", generatedPlan.mealPlans[0].name);
+      generatedPlan.mealPlans.forEach((plan, index) => {
+        console.log(`Plan ${index + 1}: ${plan.name} has ${plan.meals?.length || 0} meals`);
+      });
+    }
+    
+    // Check if crossPlanOptimization exists
+    if (generatedPlan.crossPlanOptimization) {
+      console.log("CrossPlanOptimization found with", generatedPlan.crossPlanOptimization.sharedIngredients?.length || 0, "shared ingredients");
+    } else {
+      console.log("WARNING: No crossPlanOptimization found in response");
     }
     
     return generatedPlan;
