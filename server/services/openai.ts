@@ -374,6 +374,8 @@ INSTRUCTION REQUIREMENTS:
 - Include resting times, seasoning moments, and finishing touches
 - Mention visual cues (golden brown, bubbling, etc.) and internal temperatures where applicable`;
 
+  console.log("OpenAI Request - Meal Plans:", request.mealPlans.map(p => `${p.name}: ${p.mealCount} meals`));
+  
   const userPrompt = `Please create ${request.mealPlans.length} coordinated meal plans with maximum ingredient overlap for cost savings:
 
 AVAILABLE HOUSEHOLD MEMBERS:
@@ -393,7 +395,7 @@ ${request.mealPlans.map((plan, index) => `
 Plan ${index + 1}: ${plan.name}
 - Target Group: ${plan.targetGroup}
 - Duration: ${plan.duration} days
-- Number of Meals: ${plan.mealCount} meals (IMPORTANT: Generate exactly ${plan.mealCount} meals for this plan)
+- Number of Meals: ${plan.mealCount} meals (CRITICAL: You MUST generate exactly ${plan.mealCount} meals for this plan - count them carefully)
 - Meal Types: ${plan.mealTypes.join(', ')}
 - Goals: ${plan.goals.join(', ')}
 - Budget: ${plan.budget ? `$${plan.budget}` : 'Not specified'}
@@ -403,7 +405,8 @@ Plan ${index + 1}: ${plan.name}
 `).join('')}
 
 CRITICAL REQUIREMENTS:
-1. **EXACT MEAL COUNT**: Each meal plan MUST contain exactly the specified number of meals - no more, no less
+1. **EXACT MEAL COUNT**: Each meal plan MUST contain exactly the specified number of meals - no more, no less. COUNT CAREFULLY!
+   ${request.mealPlans.map((plan, index) => `   - Plan ${index + 1} (${plan.name}): Generate exactly ${plan.mealCount} meals`).join('\n')}
 2. **DETAILED INSTRUCTIONS**: Each recipe must include comprehensive, step-by-step cooking instructions with specific techniques, temperatures, and timing
 3. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
 4. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
