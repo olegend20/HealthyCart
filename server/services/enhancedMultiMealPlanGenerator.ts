@@ -324,39 +324,60 @@ export async function generateEnhancedMultiMealPlan(request: MultiMealPlanReques
       });
     }
 
-    // Create consolidated grocery list
-    const consolidatedGroceryListData: InsertGroceryList = {
-      mealPlanId: createdMealPlans[0].id, // Associate with first meal plan
-      name: `${request.groupName} - Consolidated Shopping List`,
-      totalCost: generatedMultiPlan.crossPlanOptimization.consolidatedShoppingList
-        .reduce((total, item) => total + item.estimatedPrice, 0).toString()
-    };
-
-    const consolidatedGroceryList = await storage.createGroceryList(consolidatedGroceryListData);
-    console.log("Created consolidated grocery list with ID:", consolidatedGroceryList.id);
-
-    // Create consolidated grocery list items
-    const groceryItems = [];
-    for (const item of generatedMultiPlan.crossPlanOptimization.consolidatedShoppingList) {
-      const groceryItemData: InsertGroceryListItem = {
-        groceryListId: consolidatedGroceryList.id,
-        name: item.name,
-        amount: item.totalAmount,
-        unit: item.unit,
-        category: item.category,
-        estimatedPrice: item.estimatedPrice,
-        aisle: item.aisle
+    // Create consolidated grocery lists for each meal plan
+    const consolidatedGroceryLists = [];
+    const consolidatedItems = generatedMultiPlan.crossPlanOptimization.consolidatedShoppingList || [];
+    
+    for (const mealPlan of createdMealPlans) {
+      // Create grocery list for this meal plan
+      const groceryListData: InsertGroceryList = {
+        mealPlanId: mealPlan.id,
+        name: `${mealPlan.name} - Consolidated Shopping List`,
+        totalCost: consolidatedItems
+          .reduce((total, item) => total + item.estimatedPrice, 0).toString()
       };
 
-      const groceryItem = await storage.createGroceryListItem(groceryItemData);
-      groceryItems.push({
-        ...groceryItem,
-        amount: parseFloat(groceryItem.amount?.toString() || "0"),
-        estimatedPrice: parseFloat(groceryItem.estimatedPrice?.toString() || "0"),
-        usedInPlans: generatedMultiPlan.crossPlanOptimization.sharedIngredients
-          .find(shared => shared.name.toLowerCase() === item.name.toLowerCase())?.usedInPlans || []
+      const groceryList = await storage.createGroceryList(groceryListData);
+      console.log(`Created grocery list for meal plan ${mealPlan.name} with ID: ${groceryList.id}`);
+
+      // Create grocery list items for this meal plan
+      const groceryItems = [];
+      for (const item of consolidatedItems) {
+        const groceryItemData: InsertGroceryListItem = {
+          groceryListId: groceryList.id,
+          name: item.name,
+          amount: item.totalAmount,
+          unit: item.unit,
+          category: item.category,
+          estimatedPrice: item.estimatedPrice,
+          aisle: item.aisle
+        };
+
+        const groceryItem = await storage.createGroceryListItem(groceryItemData);
+        groceryItems.push({
+          ...groceryItem,
+          amount: parseFloat(groceryItem.amount?.toString() || "0"),
+          estimatedPrice: parseFloat(groceryItem.estimatedPrice?.toString() || "0"),
+          usedInPlans: generatedMultiPlan.crossPlanOptimization.sharedIngredients
+            .find(shared => shared.name.toLowerCase() === item.name.toLowerCase())?.usedInPlans || []
+        });
+      }
+      
+      consolidatedGroceryLists.push({
+        id: groceryList.id,
+        name: groceryList.name,
+        totalCost: parseFloat(groceryList.totalCost || "0"),
+        items: groceryItems
       });
     }
+
+    // Use the first grocery list as the main consolidated list for the response
+    const mainConsolidatedGroceryList = consolidatedGroceryLists[0] || {
+      id: 0,
+      name: "No grocery list",
+      totalCost: 0,
+      items: []
+    };
 
     return {
       group: {
@@ -365,12 +386,7 @@ export async function generateEnhancedMultiMealPlan(request: MultiMealPlanReques
         description: group.description || ""
       },
       mealPlans: createdMealPlans,
-      consolidatedGroceryList: {
-        id: consolidatedGroceryList.id,
-        name: consolidatedGroceryList.name,
-        totalCost: parseFloat(consolidatedGroceryList.totalCost || "0"),
-        items: groceryItems
-      },
+      consolidatedGroceryList: mainConsolidatedGroceryList,
       optimization: {
         sharedIngredients: generatedMultiPlan.crossPlanOptimization.sharedIngredients,
         totalSavings: generatedMultiPlan.crossPlanOptimization.totalSavings,
