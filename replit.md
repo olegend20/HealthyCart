@@ -112,7 +112,7 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
-- July 17, 2025. Multi-Meal Plan Generator with Ingredient Optimization
+- July 17, 2025. Multi-Meal Plan Generator with Ingredient Optimization & Nutrition Goals Integration
   - Implemented comprehensive multi-meal plan generation system for different target groups
   - Added MultiMealPlanForm component for creating multiple coordinated meal plans (adults, kids, dietary restrictions)
   - Created enhancedMultiMealPlanGenerator service with advanced OpenAI integration
@@ -128,7 +128,12 @@ The application uses a relational database with the following key entities:
   - Nutrition summary includes overall averages and plan-specific comparisons
   - Enhanced API with /api/meal-plans/generate-multi endpoint using new generator
   - Added comprehensive error handling and logging for multi-plan generation
-  - Users can now create separate meal plans for different groups while saving money
+  - **NEW: Nutrition Goals Integration** - Multi-meal plan generator now incorporates user's nutrition goals
+  - Added nutritionGoals parameter to MultiMealPlanRequest interface
+  - OpenAI prompts now include user's nutrition goals with current progress and target values
+  - System considers nutrition goals when generating meal plans across multiple target groups
+  - Enhanced logging to track when nutrition goals are being applied to meal planning
+  - Users can now create separate meal plans for different groups while saving money and achieving nutrition goals
 
 - July 16, 2025. Recipe Rejection & AI Replacement Feature implementation
   - Added thumbs down functionality for recipe rejection in meal plan details

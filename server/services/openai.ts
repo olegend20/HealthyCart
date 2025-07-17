@@ -37,6 +37,15 @@ export interface MultiMealPlanRequest {
     name: string;
     type: string;
   }>;
+  nutritionGoals: Array<{
+    name: string;
+    description?: string;
+    targetValue: number;
+    currentValue: number;
+    unit: string;
+    period: string;
+    isActive: boolean;
+  }>;
   mealPlans: Array<{
     name: string;
     targetGroup: string;
@@ -375,10 +384,14 @@ INSTRUCTION REQUIREMENTS:
 - Mention visual cues (golden brown, bubbling, etc.) and internal temperatures where applicable`;
 
   console.log("OpenAI Request - Meal Plans:", request.mealPlans.map(p => `${p.name}: ${p.mealCount} meals`));
+  console.log("Selected Members by Plan:", request.mealPlans.map(p => `${p.name}: [${p.selectedMembers.map(m => m.name).join(', ')}]`));
+  console.log("User Nutrition Goals:", request.nutritionGoals.length > 0 ? 
+    request.nutritionGoals.map(g => `${g.name}: ${g.currentValue}/${g.targetValue} ${g.unit}`).join(', ') : 
+    'No nutrition goals set');
   
   const userPrompt = `Please create ${request.mealPlans.length} coordinated meal plans with maximum ingredient overlap for cost savings:
 
-AVAILABLE HOUSEHOLD MEMBERS:
+ALL HOUSEHOLD MEMBERS (for reference):
 ${request.householdMembers.map(member => `
 - ${member.name} (${member.age ? `${member.age} years old` : 'age not specified'})
   - Dietary restrictions: ${member.dietaryRestrictions.join(', ') || 'None'}
@@ -390,6 +403,14 @@ ${request.householdMembers.map(member => `
 AVAILABLE COOKING EQUIPMENT:
 ${request.cookingEquipment.map(eq => `- ${eq.name} (${eq.type})`).join('\n')}
 
+USER NUTRITION GOALS:
+${request.nutritionGoals.length > 0 ? request.nutritionGoals.map(goal => `
+- ${goal.name}: ${goal.targetValue} ${goal.unit} (${goal.period})
+  Current: ${goal.currentValue} ${goal.unit}
+  ${goal.description ? `Description: ${goal.description}` : ''}
+  Progress: ${goal.currentValue > 0 ? Math.round((goal.currentValue / goal.targetValue) * 100) : 0}%
+`).join('') : 'No specific nutrition goals set'}
+
 MEAL PLANS TO CREATE:
 ${request.mealPlans.map((plan, index) => `
 Plan ${index + 1}: ${plan.name}
@@ -399,22 +420,26 @@ Plan ${index + 1}: ${plan.name}
 - Meal Types: ${plan.mealTypes.join(', ')}
 - Goals: ${plan.goals.join(', ')}
 - Budget: ${plan.budget ? `$${plan.budget}` : 'Not specified'}
-- Members: ${plan.selectedMembers.map(m => m.name).join(', ')}
+- Selected Members for this plan: ${plan.selectedMembers.length > 0 ? plan.selectedMembers.map(m => m.name).join(', ') : 'None selected'}
   ${plan.selectedMembers.map(member => `
-  - ${member.name}: allergies [${member.allergies.join(', ') || 'None'}], preferences [${member.preferences.join(', ') || 'None'}], dislikes [${member.dislikes.join(', ') || 'None'}]`).join('')}
+  - ${member.name} (${member.age ? `${member.age} years old` : 'age not specified'}): 
+    * Allergies: ${member.allergies.join(', ') || 'None'}
+    * Preferences: ${member.preferences.join(', ') || 'None'}
+    * Dislikes: ${member.dislikes.join(', ') || 'None'}`).join('')}
 `).join('')}
 
 CRITICAL REQUIREMENTS:
 1. **EXACT MEAL COUNT**: Each meal plan MUST contain exactly the specified number of meals - no more, no less. COUNT CAREFULLY!
    ${request.mealPlans.map((plan, index) => `   - Plan ${index + 1} (${plan.name}): Generate exactly ${plan.mealCount} meals`).join('\n')}
-2. **DETAILED INSTRUCTIONS**: Each recipe must include comprehensive, step-by-step cooking instructions with specific techniques, temperatures, and timing
-3. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
-4. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
-5. **SAFETY FIRST**: Ensure all meals are safe for their target groups (respect allergies)
-6. **AGE-APPROPRIATE**: Consider target group preferences (kids vs adults)
-7. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
-8. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
-9. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
+2. **NUTRITION GOALS**: Design meals to help achieve the user's nutrition goals listed above
+3. **DETAILED INSTRUCTIONS**: Each recipe must include comprehensive, step-by-step cooking instructions with specific techniques, temperatures, and timing
+4. **MAXIMIZE INGREDIENT OVERLAP**: Use the same ingredients across multiple meal plans where possible
+5. **COST OPTIMIZATION**: Prioritize ingredients that can be bought in bulk and used across plans
+6. **SAFETY FIRST**: Ensure all meals are safe for their target groups (respect allergies)
+7. **AGE-APPROPRIATE**: Consider target group preferences (kids vs adults)
+8. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
+9. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
+10. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
 
 Please respond with a complete multi-meal plan in JSON format with this exact structure:
 {

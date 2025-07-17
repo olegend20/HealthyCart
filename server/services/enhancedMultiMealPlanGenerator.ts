@@ -115,13 +115,15 @@ export async function generateEnhancedMultiMealPlan(request: MultiMealPlanReques
     console.log("Creating", request.mealPlans.length, "meal plans");
     
     // Get user data
-    const [householdMembers, cookingEquipment] = await Promise.all([
+    const [householdMembers, cookingEquipment, nutritionGoals] = await Promise.all([
       storage.getHouseholdMembers(request.userId),
-      storage.getCookingEquipment(request.userId)
+      storage.getCookingEquipment(request.userId),
+      storage.getNutritionGoals(request.userId)
     ]);
     
     console.log("Found household members:", householdMembers.length);
     console.log("Found cooking equipment:", cookingEquipment.length);
+    console.log("Found nutrition goals:", nutritionGoals.length);
 
     // Create meal plan group
     const groupData: InsertMealPlanGroup = {
@@ -147,6 +149,17 @@ export async function generateEnhancedMultiMealPlan(request: MultiMealPlanReques
         name: eq.name,
         type: eq.type
       })),
+      nutritionGoals: nutritionGoals
+        .filter(goal => goal.isActive)
+        .map(goal => ({
+          name: goal.name,
+          description: goal.description || undefined,
+          targetValue: parseFloat(goal.targetValue?.toString() || "0"),
+          currentValue: parseFloat(goal.currentValue?.toString() || "0"),
+          unit: goal.unit || "",
+          period: goal.period || "weekly",
+          isActive: goal.isActive || false
+        })),
       mealPlans: request.mealPlans.map(plan => ({
         name: plan.name,
         targetGroup: plan.targetGroup,
