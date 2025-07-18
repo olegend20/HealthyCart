@@ -356,20 +356,42 @@ Only return the JSON object, no other text.
 export async function generateInstacartFormat(request: InstacartFormatRequest): Promise<string> {
   try {
     const prompt = `
-Format this grocery list for ChatGPT Instacart operator.
+You are an expert grocery shopping assistant. Convert this cooking ingredient list into grocery store purchasing format for Instacart.
 
-Ingredients:
+COOKING INGREDIENTS TO CONVERT:
 ${request.ingredients.map(item => `${item.name}: ${item.totalAmount} ${item.unit}`).join('\n')}
+
+CONVERSION RULES:
+1. Convert cooking measurements to grocery store units:
+   - "cups flour" → "5 lb bag all-purpose flour"
+   - "tablespoons olive oil" → "1 bottle olive oil (16.9 fl oz)"
+   - "ounces cheese" → "8 oz package shredded cheese"
+   - "cups milk" → "1 gallon milk" or "1 half-gallon milk"
+   - "pounds meat" → keep as "X lbs [cut] [meat type]"
+   - "whole items" → keep as count (e.g., "3 onions", "2 bell peppers")
+
+2. Use standard grocery package sizes:
+   - Flour: 5 lb bags
+   - Sugar: 4 lb bags  
+   - Rice: 2 lb or 5 lb bags
+   - Pasta: 1 lb boxes
+   - Canned goods: standard can sizes
+   - Dairy: gallon, half-gallon, quart containers
+   - Produce: by piece or pound as typically sold
+
+3. Round up to ensure enough quantity
+4. Use grocery store language (not cooking measurements)
+5. Specify common brands or types when helpful
 
 Return in this exact format:
 "Please add these items to my Instacart cart:
-- [quantity] [item name]
-- [quantity] [item name]
+- [grocery quantity/package] [specific item name]
+- [grocery quantity/package] [specific item name]
 
 If any items are unavailable, please suggest similar alternatives.
 Prefer organic options when available."
 
-Make sure quantities are clear and use standard grocery shopping language.
+Make each item specific and purchasable from a grocery store.
 `;
 
     const openai = new OpenAI({
@@ -391,15 +413,126 @@ Make sure quantities are clear and use standard grocery shopping language.
   } catch (error) {
     console.error("Error generating Instacart format:", error);
     
-    // Fallback: simple format
+    // Fallback: convert units and create grocery-friendly format
+    const convertedIngredients = request.ingredients.map(item => 
+      convertToGroceryFormat(item.name, item.totalAmount, item.unit)
+    );
+    
     const fallbackFormat = `Please add these items to my Instacart cart:
-${request.ingredients.map(item => `- ${item.totalAmount} ${item.unit} ${item.name}`).join('\n')}
+${convertedIngredients.map(item => `- ${item}`).join('\n')}
 
 If any items are unavailable, please suggest similar alternatives.
 Prefer organic options when available.`;
     
     return fallbackFormat;
   }
+}
+
+// Helper function to convert cooking measurements to grocery shopping format
+function convertToGroceryFormat(name: string, amount: string | number, unit: string): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) || 1 : amount;
+  const lowerName = name.toLowerCase();
+  const lowerUnit = unit.toLowerCase();
+
+  // Handle specific ingredient conversions
+  if (lowerName.includes('flour')) {
+    if (lowerUnit.includes('cup')) {
+      const cups = numAmount;
+      // 1 cup flour ≈ 4.5 oz, 5 lb bag = 80 oz
+      if (cups <= 8) return '5 lb bag all-purpose flour';
+      return '10 lb bag all-purpose flour';
+    }
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound')) {
+      if (numAmount <= 5) return '5 lb bag all-purpose flour';
+      return '10 lb bag all-purpose flour';
+    }
+  }
+
+  if (lowerName.includes('sugar')) {
+    if (lowerUnit.includes('cup')) {
+      return '4 lb bag granulated sugar';
+    }
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound')) {
+      if (numAmount <= 4) return '4 lb bag granulated sugar';
+      return '10 lb bag granulated sugar';
+    }
+  }
+
+  if (lowerName.includes('milk')) {
+    if (lowerUnit.includes('cup')) {
+      const cups = numAmount;
+      if (cups <= 4) return '1 quart milk';
+      if (cups <= 8) return '1 half-gallon milk';
+      return '1 gallon milk';
+    }
+  }
+
+  if (lowerName.includes('oil') && (lowerUnit.includes('tbsp') || lowerUnit.includes('tablespoon'))) {
+    return '1 bottle olive oil (16.9 fl oz)';
+  }
+
+  if (lowerName.includes('cheese')) {
+    if (lowerUnit.includes('cup') || lowerUnit.includes('oz') || lowerUnit.includes('ounce')) {
+      const oz = lowerUnit.includes('cup') ? numAmount * 4 : numAmount; // roughly 1 cup = 4 oz for shredded cheese
+      if (oz <= 8) return '8 oz package shredded cheese';
+      return '16 oz package shredded cheese';
+    }
+  }
+
+  if (lowerName.includes('pasta') || lowerName.includes('noodle')) {
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound') || lowerUnit.includes('oz')) {
+      return '1 lb box pasta';
+    }
+  }
+
+  if (lowerName.includes('rice')) {
+    if (lowerUnit.includes('cup')) {
+      const cups = numAmount;
+      if (cups <= 4) return '2 lb bag rice';
+      return '5 lb bag rice';
+    }
+  }
+
+  // Handle produce (keep as pieces or convert to pounds)
+  if (lowerName.includes('onion') || lowerName.includes('bell pepper') || lowerName.includes('tomato')) {
+    if (lowerUnit.includes('whole') || lowerUnit === '' || lowerUnit === 'each') {
+      const count = Math.ceil(numAmount);
+      return `${count} ${count === 1 ? lowerName : lowerName + 's'}`;
+    }
+  }
+
+  // Handle meat/protein - keep as pounds
+  if (lowerName.includes('chicken') || lowerName.includes('beef') || lowerName.includes('pork') || 
+      lowerName.includes('fish') || lowerName.includes('salmon') || lowerName.includes('turkey')) {
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound')) {
+      return `${Math.ceil(numAmount)} lbs ${name}`;
+    }
+    if (lowerUnit.includes('oz') || lowerUnit.includes('ounce')) {
+      const pounds = Math.ceil(numAmount / 16 * 10) / 10; // round up to nearest 0.1 lb
+      return `${pounds} lbs ${name}`;
+    }
+  }
+
+  // Handle canned goods
+  if (lowerName.includes('tomato') && (lowerName.includes('can') || lowerName.includes('diced') || lowerName.includes('crushed'))) {
+    const cans = Math.ceil(numAmount);
+    return `${cans} can${cans > 1 ? 's' : ''} diced tomatoes (14.5 oz)`;
+  }
+
+  // Default: try to keep reasonable format
+  if (lowerUnit.includes('cup') || lowerUnit.includes('tbsp') || lowerUnit.includes('tsp')) {
+    // For small amounts in cooking units, suggest package sizes
+    return `1 package ${name}`;
+  }
+
+  // If amount and unit are already grocery-friendly, keep them
+  if (lowerUnit.includes('lb') || lowerUnit.includes('oz') || lowerUnit === '' || lowerUnit === 'each') {
+    const cleanAmount = Math.ceil(numAmount);
+    return `${cleanAmount} ${unit} ${name}`.trim();
+  }
+
+  // Fallback
+  return `${Math.ceil(numAmount)} ${unit} ${name}`.trim();
 }
 
 // Helper function to map categories to aisles (fallback)

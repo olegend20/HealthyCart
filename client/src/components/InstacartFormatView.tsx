@@ -75,6 +75,11 @@ Prefer organic options when available.`;
             <li>Paste the text and send your message</li>
             <li>ChatGPT will add items to your Instacart cart</li>
           </ol>
+          <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+            <div className="text-xs text-blue-800">
+              <strong>Smart Unit Conversion:</strong> Cooking measurements (cups, tablespoons) are automatically converted to grocery store units (packages, bottles, bags) for easy shopping.
+            </div>
+          </div>
         </AlertDescription>
       </Alert>
 
@@ -189,6 +194,7 @@ Prefer organic options when available.`;
         <AlertDescription>
           <div className="font-medium mb-1">Pro Tips:</div>
           <ul className="text-sm space-y-1">
+            <li>• Measurements are converted to grocery store sizes (e.g., "2 cups flour" → "5 lb bag flour")</li>
             <li>• ChatGPT can suggest alternatives if items are unavailable</li>
             <li>• Ask for organic options when available</li>
             <li>• You can modify quantities before confirming the order</li>
