@@ -12,15 +12,53 @@ export default function Home() {
     queryKey: ['/api/auth/user'],
   });
 
-  const { data: mealPlanGroups = [] } = useQuery({
+  const { data: mealPlanGroups = [], error: groupsError } = useQuery({
     queryKey: ['/api/meal-plan-groups'],
+  });
+
+  const { data: mealPlans = [] } = useQuery({
+    queryKey: ['/api/meal-plans'],
   });
 
   const { data: householdMembers = [] } = useQuery({
     queryKey: ['/api/household-members'],
   });
 
-  const recentMealPlanGroups = mealPlanGroups.slice(0, 3);
+  // If we have meal plan groups, use them; otherwise, group individual meal plans by groupId
+  const displayData = mealPlanGroups.length > 0 ? mealPlanGroups : 
+    mealPlans.reduce((groups: any[], plan: any) => {
+      if (plan.groupId) {
+        let group = groups.find(g => g.id === plan.groupId);
+        if (!group) {
+          group = {
+            id: plan.groupId,
+            name: `Week ${plan.groupId}`,
+            description: 'Coordinated meal plans for multiple target groups',
+            createdAt: plan.createdAt,
+            mealPlans: []
+          };
+          groups.push(group);
+        }
+        group.mealPlans.push(plan);
+      } else {
+        // For individual plans without groups, create a single-plan group
+        groups.push({
+          id: `single-${plan.id}`,
+          name: plan.name,
+          description: plan.targetGroup,
+          createdAt: plan.createdAt,
+          mealPlans: [plan]
+        });
+      }
+      return groups;
+    }, []);
+
+  const recentMealPlanGroups = displayData.slice(0, 3);
+
+  // Debug logging
+  console.log('Meal plan groups:', mealPlanGroups);
+  console.log('Meal plans:', mealPlans);
+  console.log('Display data:', displayData);
 
   if (showWizard) {
     return (
@@ -75,7 +113,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-blue-900">Multi-Meal Plan Groups</h3>
-                <p className="text-2xl font-bold text-blue-600">{mealPlanGroups.length}</p>
+                <p className="text-2xl font-bold text-blue-600">{displayData.length}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-green-900">Household Members</h3>
@@ -84,7 +122,7 @@ export default function Home() {
               <div className="bg-purple-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-purple-900">Total Meal Plans</h3>
                 <p className="text-2xl font-bold text-purple-600">
-                  {mealPlanGroups.reduce((total: number, group: any) => total + (group.mealPlans?.length || 0), 0)}
+                  {displayData.reduce((total: number, group: any) => total + (group.mealPlans?.length || 0), 0)}
                 </p>
               </div>
             </div>
@@ -132,7 +170,7 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                {mealPlanGroups.length > 3 && (
+                {displayData.length > 3 && (
                   <div className="text-center mt-4">
                     <Link
                       to="/meal-plan-groups"
