@@ -59,6 +59,7 @@ export function ConsolidatedIngredientsModal({
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [printRef, setPrintRef] = useState<HTMLDivElement | null>(null);
+  const [excludedIngredients, setExcludedIngredients] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -116,7 +117,7 @@ export function ConsolidatedIngredientsModal({
     setSelectedStore(store);
     if (consolidatedData?.ingredients) {
       await organizeByStoreMutation.mutateAsync({
-        ingredients: consolidatedData.ingredients,
+        ingredients: getFilteredIngredients(),
         store
       });
     }
@@ -124,7 +125,7 @@ export function ConsolidatedIngredientsModal({
 
   const handleInstacartGeneration = async () => {
     if (consolidatedData?.ingredients) {
-      await instacartFormatMutation.mutateAsync(consolidatedData.ingredients);
+      await instacartFormatMutation.mutateAsync(getFilteredIngredients());
     }
   };
 
@@ -188,6 +189,31 @@ export function ConsolidatedIngredientsModal({
         }, 500);
       }
     }
+  };
+
+  const handleToggleIngredient = (ingredientKey: string) => {
+    setExcludedIngredients(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(ingredientKey)) {
+        newSet.delete(ingredientKey);
+      } else {
+        newSet.add(ingredientKey);
+      }
+      return newSet;
+    });
+  };
+
+  const getFilteredIngredients = () => {
+    if (!consolidatedData?.ingredients) return [];
+    return consolidatedData.ingredients.filter(ingredient => {
+      const ingredientKey = `${ingredient.name}-${ingredient.unit}`;
+      return !excludedIngredients.has(ingredientKey);
+    });
+  };
+
+  const getFilteredTotalCost = () => {
+    const filteredIngredients = getFilteredIngredients();
+    return filteredIngredients.reduce((total, ingredient) => total + ingredient.estimatedPrice, 0);
   };
 
   const generateDownloadContent = () => {
@@ -273,17 +299,31 @@ export function ConsolidatedIngredientsModal({
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-green-600">
-                ${consolidatedData.totalCost.toFixed(2)}
+                ${getFilteredTotalCost().toFixed(2)}
               </div>
-              <div className="text-sm text-gray-600">Total Cost</div>
+              <div className="text-sm text-gray-600">
+                Total Cost
+                {excludedIngredients.size > 0 && (
+                  <span className="text-xs text-gray-500 block">
+                    (${consolidatedData.totalCost.toFixed(2)} originally)
+                  </span>
+                )}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-blue-600">
-                {consolidatedData.metadata.totalItems}
+                {getFilteredIngredients().length}
               </div>
-              <div className="text-sm text-gray-600">Total Items</div>
+              <div className="text-sm text-gray-600">
+                Shopping Items
+                {excludedIngredients.size > 0 && (
+                  <span className="text-xs text-gray-500 block">
+                    ({consolidatedData.metadata.totalItems} originally)
+                  </span>
+                )}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -316,26 +356,57 @@ export function ConsolidatedIngredientsModal({
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {consolidatedData.ingredients.map((ingredient, index) => (
-                    <div key={index} className="flex items-center justify-between border-b pb-2">
-                      <div>
-                        <span className="font-medium">
-                          {ingredient.totalAmount} {ingredient.unit} {ingredient.name}
-                        </span>
-                        {ingredient.usedInPlans.length > 1 && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Used in: {ingredient.usedInPlans.join(', ')}
+                  {consolidatedData.ingredients.map((ingredient, index) => {
+                    const ingredientKey = `${ingredient.name}-${ingredient.unit}`;
+                    const isExcluded = excludedIngredients.has(ingredientKey);
+                    
+                    return (
+                      <div key={index} className={`flex items-center justify-between border-b pb-2 transition-opacity ${isExcluded ? 'opacity-50' : ''}`}>
+                        <div className="flex items-center space-x-3 flex-1">
+                          <Button
+                            variant={isExcluded ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleToggleIngredient(ingredientKey)}
+                            className={`text-xs ${isExcluded ? 'bg-green-600 hover:bg-green-700' : 'hover:bg-gray-100'}`}
+                          >
+                            {isExcluded ? 'Have it' : 'I have this'}
+                          </Button>
+                          <div className="flex-1">
+                            <span className={`font-medium ${isExcluded ? 'line-through text-gray-500' : ''}`}>
+                              {ingredient.totalAmount} {ingredient.unit} {ingredient.name}
+                            </span>
+                            {ingredient.usedInPlans.length > 1 && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                Used in: {ingredient.usedInPlans.join(', ')}
+                              </div>
+                            )}
+                            <Badge variant="outline" className="text-xs ml-2">
+                              {ingredient.category}
+                            </Badge>
                           </div>
-                        )}
-                        <Badge variant="outline" className="text-xs ml-2">
-                          {ingredient.category}
-                        </Badge>
+                        </div>
+                        <span className={`text-sm font-medium ${isExcluded ? 'line-through text-gray-500' : 'text-gray-600'}`}>
+                          ${ingredient.estimatedPrice.toFixed(2)}
+                        </span>
                       </div>
-                      <span className="text-sm text-gray-600 font-medium">
-                        ${ingredient.estimatedPrice.toFixed(2)}
-                      </span>
+                    );
+                  })}
+                  
+                  {excludedIngredients.size > 0 && (
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>Items you already have: {excludedIngredients.size}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExcludedIngredients(new Set())}
+                          className="text-xs"
+                        >
+                          Reset all
+                        </Button>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -378,7 +449,7 @@ export function ConsolidatedIngredientsModal({
               {selectedStore && (
                 <>
                   <AisleOrganizedView
-                    ingredients={consolidatedData.ingredients}
+                    ingredients={getFilteredIngredients()}
                     store={selectedStore}
                     organizedData={organizeByStoreMutation.data}
                     isLoading={organizeByStoreMutation.isPending}
@@ -388,7 +459,7 @@ export function ConsolidatedIngredientsModal({
                   <div style={{ display: 'none' }}>
                     <PrintableShoppingList
                       ref={setPrintRef}
-                      ingredients={consolidatedData.ingredients}
+                      ingredients={getFilteredIngredients()}
                       organizedData={organizeByStoreMutation.data}
                       store={selectedStore}
                       title={consolidatedData.name}
@@ -430,7 +501,7 @@ export function ConsolidatedIngredientsModal({
               </div>
 
               <InstacartFormatView
-                ingredients={consolidatedData.ingredients}
+                ingredients={getFilteredIngredients()}
                 formatData={instacartFormatMutation.data}
                 isLoading={instacartFormatMutation.isPending}
                 onCopy={handleCopyToClipboard}
