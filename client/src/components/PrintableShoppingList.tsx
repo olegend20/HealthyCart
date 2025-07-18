@@ -21,7 +21,6 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
       return acc;
     }, {} as { [key: string]: ConsolidatedIngredient[] });
 
-    const totalCost = ingredients.reduce((sum, item) => sum + item.estimatedPrice, 0);
     const totalItems = ingredients.length;
 
     return (
@@ -52,7 +51,7 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
             {store} Shopping List
           </div>
           <div className="text-sm text-gray-500 mt-2">
-            {totalItems} items • Estimated cost: ${totalCost.toFixed(2)}
+            {totalItems} items
           </div>
           <div className="text-xs text-gray-400 mt-1">
             Generated on {new Date().toLocaleDateString()}
@@ -66,8 +65,8 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
             <div className="text-2xl text-blue-600">{totalItems}</div>
           </div>
           <div className="border rounded p-3">
-            <div className="font-bold text-lg">Estimated Cost</div>
-            <div className="text-2xl text-green-600">${totalCost.toFixed(2)}</div>
+            <div className="font-bold text-lg">Categories</div>
+            <div className="text-2xl text-green-600">{new Set(ingredients.map(i => i.category)).size}</div>
           </div>
           <div className="border rounded p-3">
             <div className="font-bold text-lg">Store Sections</div>
@@ -103,7 +102,7 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
                         </div>
                       </div>
                       <span className="text-sm text-gray-600 font-medium">
-                        ${ingredient.estimatedPrice.toFixed(2)}
+                        {ingredient.category}
                       </span>
                     </div>
                   ))}
