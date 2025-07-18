@@ -56,6 +56,8 @@ export interface IStorage {
   
   // Meal plan groups
   getMealPlanGroups(userId: string): Promise<MealPlanGroup[]>;
+  getMealPlanGroup(id: number): Promise<MealPlanGroup | undefined>;
+  getMealPlansByGroup(groupId: number): Promise<MealPlan[]>;
   createMealPlanGroup(group: InsertMealPlanGroup): Promise<MealPlanGroup>;
   
   // Meal plans
@@ -176,6 +178,22 @@ export class DatabaseStorage implements IStorage {
       .from(mealPlanGroups)
       .where(eq(mealPlanGroups.userId, userId))
       .orderBy(desc(mealPlanGroups.createdAt));
+  }
+
+  async getMealPlanGroup(id: number): Promise<MealPlanGroup | undefined> {
+    const [result] = await db
+      .select()
+      .from(mealPlanGroups)
+      .where(eq(mealPlanGroups.id, id));
+    return result;
+  }
+
+  async getMealPlansByGroup(groupId: number): Promise<MealPlan[]> {
+    return await db
+      .select()
+      .from(mealPlans)
+      .where(eq(mealPlans.groupId, groupId))
+      .orderBy(desc(mealPlans.createdAt));
   }
 
   async createMealPlanGroup(group: InsertMealPlanGroup): Promise<MealPlanGroup> {

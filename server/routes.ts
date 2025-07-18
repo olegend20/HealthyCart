@@ -120,6 +120,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Meal plan group routes  
+  app.get('/api/meal-plan-groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const groups = await storage.getMealPlanGroups(userId);
+      
+      // Get associated meal plans for each group
+      const groupsWithPlans = await Promise.all(
+        groups.map(async (group) => {
+          const mealPlans = await storage.getMealPlansByGroup(group.id);
+          return { ...group, mealPlans };
+        })
+      );
+      
+      res.json(groupsWithPlans);
+    } catch (error) {
+      console.error("Error fetching meal plan groups:", error);
+      res.status(500).json({ message: "Failed to fetch meal plan groups" });
+    }
+  });
+
+  app.get('/api/meal-plan-groups/:groupId', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const group = await storage.getMealPlanGroup(groupId);
+      
+      if (!group) {
+        return res.status(404).json({ message: "Meal plan group not found" });
+      }
+      
+      const mealPlans = await storage.getMealPlansByGroup(groupId);
+      res.json({ ...group, mealPlans });
+    } catch (error) {
+      console.error("Error fetching meal plan group:", error);
+      res.status(500).json({ message: "Failed to fetch meal plan group" });
+    }
+  });
+
+  app.get('/api/meal-plan-groups/:groupId/consolidated-grocery-list', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const mealPlans = await storage.getMealPlansByGroup(groupId);
+      
+      // Get all grocery lists for the meal plans in this group
+      const allGroceryLists = [];
+      for (const plan of mealPlans) {
+        const groceryLists = await storage.getGroceryLists(plan.id);
+        for (const list of groceryLists) {
+          const detailedList = await storage.getGroceryList(list.id);
+          if (detailedList) {
+            allGroceryLists.push(detailedList);
+          }
+        }
+      }
+      
+      // Consolidate items by name and category
+      const consolidatedItems = new Map();
+      let totalCost = 0;
+      
+      for (const list of allGroceryLists) {
+        for (const item of list.items) {
+          const key = `${item.name}-${item.category}`;
+          if (consolidatedItems.has(key)) {
+            const existing = consolidatedItems.get(key);
+            existing.amount += item.amount;
+            existing.estimatedPrice += item.estimatedPrice;
+          } else {
+            consolidatedItems.set(key, { ...item });
+          }
+          totalCost += item.estimatedPrice;
+        }
+      }
+      
+      const consolidatedGroceryList = {
+        id: `consolidated-${groupId}`,
+        name: `Consolidated Grocery List`,
+        totalCost: totalCost.toFixed(2),
+        items: Array.from(consolidatedItems.values())
+      };
+      
+      res.json(consolidatedGroceryList);
+    } catch (error) {
+      console.error("Error creating consolidated grocery list:", error);
+      res.status(500).json({ message: "Failed to create consolidated grocery list" });
+    }
+  });
+
   // Meal plan routes
   app.get('/api/meal-plans', isAuthenticated, async (req: any, res) => {
     try {

@@ -133,7 +133,14 @@ The application uses a relational database with the following key entities:
   - OpenAI prompts now include user's nutrition goals with current progress and target values
   - System considers nutrition goals when generating meal plans across multiple target groups
   - Enhanced logging to track when nutrition goals are being applied to meal planning
-  - Users can now create separate meal plans for different groups while saving money and achieving nutrition goals
+  - **NEW: Consolidated Multi-Meal Plan Dashboard** - Unified view for meal plan groups
+  - Home page now displays meal plan groups instead of individual meal plans
+  - Created MealPlanGroupDetails page showing all plans in a group with consolidated grocery lists
+  - Added API endpoints for meal plan groups (/api/meal-plan-groups, /api/meal-plan-groups/:id)
+  - Implemented consolidated grocery list generation combining ingredients from all plans in a group
+  - Added tabbed interface showing group overview, all meals, and consolidated shopping list
+  - Users can now view multiple coordinated meal plans as a single unified system
+  - Dashboard shows cost savings, ingredient optimization, and total meal counts across all plans
 
 - July 16, 2025. Recipe Rejection & AI Replacement Feature implementation
   - Added thumbs down functionality for recipe rejection in meal plan details

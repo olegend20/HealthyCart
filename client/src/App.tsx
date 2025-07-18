@@ -11,6 +11,7 @@ import HouseholdSetup from "@/pages/HouseholdSetup";
 import MealPlanGenerator from "@/pages/MealPlanGenerator";
 import MultiMealPlanGenerator from "@/pages/MultiMealPlanGenerator";
 import MealPlanDetails from "@/pages/MealPlanDetails";
+import MealPlanGroupDetails from "@/pages/MealPlanGroupDetails";
 import GroceryList from "@/pages/GroceryList";
 import FeatureTracker from "@/pages/FeatureTracker";
 import RecipeLibrary from "@/pages/RecipeLibrary";
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/meal-plan-generator" component={MealPlanGenerator} />
           <Route path="/multi-meal-plan-generator" component={MultiMealPlanGenerator} />
           <Route path="/meal-plan/:id" component={MealPlanDetails} />
+          <Route path="/meal-plan-group/:groupId" component={MealPlanGroupDetails} />
           <Route path="/grocery-list/:id" component={GroceryList} />
           <Route path="/feature-tracker" component={FeatureTracker} />
           <Route path="/recipes" component={RecipeLibrary} />

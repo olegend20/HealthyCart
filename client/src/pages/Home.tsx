@@ -12,15 +12,15 @@ export default function Home() {
     queryKey: ['/api/auth/user'],
   });
 
-  const { data: mealPlans = [] } = useQuery({
-    queryKey: ['/api/meal-plans'],
+  const { data: mealPlanGroups = [] } = useQuery({
+    queryKey: ['/api/meal-plan-groups'],
   });
 
   const { data: householdMembers = [] } = useQuery({
     queryKey: ['/api/household-members'],
   });
 
-  const recentMealPlans = mealPlans.slice(0, 3);
+  const recentMealPlanGroups = mealPlanGroups.slice(0, 3);
 
   if (showWizard) {
     return (
@@ -74,71 +74,71 @@ export default function Home() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-blue-900">Total Meal Plans</h3>
-                <p className="text-2xl font-bold text-blue-600">{mealPlans.length}</p>
+                <h3 className="text-sm font-medium text-blue-900">Multi-Meal Plan Groups</h3>
+                <p className="text-2xl font-bold text-blue-600">{mealPlanGroups.length}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-green-900">Household Members</h3>
                 <p className="text-2xl font-bold text-green-600">{householdMembers.length}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-purple-900">Active Plans</h3>
+                <h3 className="text-sm font-medium text-purple-900">Total Meal Plans</h3>
                 <p className="text-2xl font-bold text-purple-600">
-                  {mealPlans.filter((plan: any) => plan.status === 'active').length}
+                  {mealPlanGroups.reduce((total: number, group: any) => total + (group.mealPlans?.length || 0), 0)}
                 </p>
               </div>
             </div>
 
-            {/* Recent Meal Plans */}
-            {recentMealPlans.length > 0 && (
+            {/* Recent Meal Plan Groups */}
+            {recentMealPlanGroups.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Recent Meal Plans
+                  Recent Multi-Meal Plan Groups
                 </h3>
                 <div className="space-y-3">
-                  {recentMealPlans.map((plan: any) => (
-                    <div key={plan.id} className="border border-gray-200 rounded-lg p-4">
+                  {recentMealPlanGroups.map((group: any) => (
+                    <div key={group.id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{plan.name}</h4>
+                          <h4 className="font-medium text-gray-900">{group.name}</h4>
                           <p className="text-sm text-gray-600">
-                            {plan.duration} days • {plan.targetGroup} • {plan.goals.join(', ')}
+                            {group.mealPlans?.length || 0} meal plans • {group.description}
                           </p>
                           <p className="text-sm text-gray-500 mt-1">
-                            {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}
+                            Created: {new Date(group.createdAt).toLocaleDateString()}
                           </p>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {group.mealPlans?.map((plan: any) => (
+                              <span key={plan.id} className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                {plan.name}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                         <div className="text-right">
-                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                            plan.status === 'active' ? 'bg-green-100 text-green-800' :
-                            plan.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {plan.status}
-                          </span>
-                          <p className="text-sm text-gray-600 mt-1">
-                            ${parseFloat(plan.totalCost || '0').toFixed(2)}
+                          <p className="text-sm text-gray-600">
+                            Total Cost: ${group.mealPlans?.reduce((total: number, plan: any) => total + parseFloat(plan.totalCost || '0'), 0).toFixed(2)}
                           </p>
                         </div>
                       </div>
                       <div className="mt-3 flex space-x-2">
                         <Link
-                          to={`/meal-plan/${plan.id}`}
+                          to={`/meal-plan-group/${group.id}`}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                         >
-                          View Details
+                          View Group Details
                         </Link>
                       </div>
                     </div>
                   ))}
                 </div>
-                {mealPlans.length > 3 && (
+                {mealPlanGroups.length > 3 && (
                   <div className="text-center mt-4">
                     <Link
-                      to="/meal-plans"
+                      to="/meal-plan-groups"
                       className="text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      View All Meal Plans
+                      View All Meal Plan Groups
                     </Link>
                   </div>
                 )}
