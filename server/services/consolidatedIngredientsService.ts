@@ -1,9 +1,28 @@
 import { storage } from "../storage";
 import OpenAI from "openai";
 
+// Smart consolidation for purchasable units
+function consolidateAmounts(amount1: string, unit1: string, amount2: string, unit2: string): string {
+  // If units are the same, try to add numeric values
+  if (unit1 === unit2) {
+    const num1 = parseFloat(amount1);
+    const num2 = parseFloat(amount2);
+    if (!isNaN(num1) && !isNaN(num2)) {
+      return (num1 + num2).toString();
+    }
+  }
+  
+  // For different units or non-numeric amounts, concatenate with a separator
+  if (amount1 && amount2) {
+    return `${amount1} + ${amount2}`;
+  }
+  
+  return amount1 || amount2;
+}
+
 export interface ConsolidatedIngredient {
   name: string;
-  totalAmount: number;
+  totalAmount: string;
   unit: string;
   category: string;
   usedInPlans: string[];
@@ -52,11 +71,12 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
 
       for (const ingredient of ingredients) {
         const key = ingredient.name.toLowerCase();
-        const amount = parseFloat(ingredient.amount || "0");
+        const amount = ingredient.amount || "1";
 
         if (ingredientMap.has(key)) {
           const existing = ingredientMap.get(key)!;
-          existing.totalAmount += amount;
+          // For purchasable units, we need smart consolidation
+          existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
           if (!existing.usedInPlans.includes(mealPlan.name)) {
             existing.usedInPlans.push(mealPlan.name);
           }
@@ -115,11 +135,12 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
 
         for (const ingredient of ingredients) {
           const key = ingredient.name.toLowerCase();
-          const amount = parseFloat(ingredient.amount || "0");
+          const amount = ingredient.amount || "1";
 
           if (ingredientMap.has(key)) {
             const existing = ingredientMap.get(key)!;
-            existing.totalAmount += amount;
+            // For purchasable units, we need smart consolidation
+            existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
             if (!existing.usedInPlans.includes(mealPlan.name)) {
               existing.usedInPlans.push(mealPlan.name);
             }

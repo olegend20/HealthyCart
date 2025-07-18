@@ -228,9 +228,9 @@ IMPORTANT REQUIREMENTS:
 3. Use available cooking equipment strategically
 4. Include hidden vegetables for children when applicable
 5. Provide detailed nutritional information
-6. Estimate realistic costs based on average grocery prices
-7. Include specific cooking instructions
-8. Suggest ingredient substitutions for allergies/preferences
+6. Include specific cooking instructions
+7. Suggest ingredient substitutions for allergies/preferences
+8. **CRITICAL: Use PURCHASABLE UNITS for all ingredients** - specify amounts as they would be bought at the store (lbs, oz, cans, bottles, packages) NOT cooking measurements (cups, tablespoons, etc.). For example: "1 lb ground beef" not "1 cup ground beef", "1 can tomatoes" not "1 cup tomatoes", "8 oz cream cheese" not "1 cup cream cheese"
 
 Please respond with a complete meal plan in JSON format with this exact structure:
 {
@@ -251,6 +251,18 @@ Please respond with a complete meal plan in JSON format with this exact structur
           "amount": 1.5,
           "unit": "lbs",
           "category": "protein"
+        },
+        {
+          "name": "diced tomatoes",
+          "amount": 1,
+          "unit": "can (14.5 oz)",
+          "category": "vegetables"
+        },
+        {
+          "name": "olive oil",
+          "amount": 16,
+          "unit": "oz bottle",
+          "category": "condiments"
         }
       ],
       "instructions": "Step by step cooking instructions",
