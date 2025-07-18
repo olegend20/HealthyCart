@@ -53,9 +53,17 @@ Prefer organic options when available.`;
     return (
       <Card>
         <CardContent className="py-8">
-          <div className="flex items-center justify-center space-x-3">
-            <Bot className="h-6 w-6 animate-pulse text-purple-600" />
-            <span>Generating Instacart format...</span>
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <Bot className="h-8 w-8 animate-pulse text-purple-600" aria-hidden="true" />
+            <div className="text-center">
+              <div className="font-medium">Generating Instacart format...</div>
+              <div className="text-sm text-gray-500 mt-2">
+                Converting cooking measurements to grocery store units
+              </div>
+            </div>
+            <div className="w-full max-w-xs bg-gray-200 rounded-full h-2">
+              <div className="bg-purple-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+            </div>
           </div>
         </CardContent>
       </Card>

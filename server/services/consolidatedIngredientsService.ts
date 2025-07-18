@@ -1,6 +1,18 @@
 import { storage } from "../storage";
 import OpenAI from "openai";
 
+// Simple in-memory cache for store layouts
+interface StoreLayoutCache {
+  [storeKey: string]: {
+    layout: { [aisle: string]: string[] };
+    timestamp: number;
+    ttl: number; // time to live in milliseconds
+  };
+}
+
+const storeLayoutCache: StoreLayoutCache = {};
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
 // Smart consolidation for purchasable units
 function consolidateAmounts(amount1: string, unit1: string, amount2: string, unit2: string): string {
   // Extract numeric values from amount strings, handling already concatenated amounts
@@ -261,10 +273,48 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
   }
 }
 
-// Organize ingredients by store aisles using AI
+// Helper function to check and retrieve cached store layout
+function getCachedStoreLayout(store: string, ingredientNames: string[]): { [aisle: string]: string[] } | null {
+  const cacheKey = `${store.toLowerCase()}-${ingredientNames.sort().join(',')}`;
+  const cached = storeLayoutCache[cacheKey];
+  
+  if (cached && (Date.now() - cached.timestamp) < cached.ttl) {
+    return cached.layout;
+  }
+  
+  // Clean up expired entries
+  if (cached && (Date.now() - cached.timestamp) >= cached.ttl) {
+    delete storeLayoutCache[cacheKey];
+  }
+  
+  return null;
+}
+
+// Helper function to cache store layout
+function cacheStoreLayout(store: string, ingredientNames: string[], layout: { [aisle: string]: string[] }): void {
+  const cacheKey = `${store.toLowerCase()}-${ingredientNames.sort().join(',')}`;
+  storeLayoutCache[cacheKey] = {
+    layout,
+    timestamp: Date.now(),
+    ttl: CACHE_TTL
+  };
+}
+
+// Organize ingredients by store aisles using AI with caching
 export async function organizeIngredientsByStore(request: StoreOrganizationRequest): Promise<{ [aisle: string]: ConsolidatedIngredient[] }> {
   try {
-    const prompt = `
+    const ingredientNames = request.ingredients.map(ing => ing.name);
+    
+    // Check cache first
+    const cachedLayout = getCachedStoreLayout(request.store, ingredientNames);
+    let aisleMapping: { [aisle: string]: string[] };
+    
+    if (cachedLayout) {
+      console.log(`Using cached store layout for ${request.store}`);
+      aisleMapping = cachedLayout;
+    } else {
+      // Generate new layout via AI
+      const prompt = `
 Organize these grocery items by aisle for ${request.store}:
 
 ${request.ingredients.map(item => `${item.name} (${item.totalAmount} ${item.unit})`).join('\n')}
@@ -285,30 +335,34 @@ Example format:
 Only return the JSON object, no other text.
 `;
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.3
-    });
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3
+      });
 
-    const responseText = completion.choices[0]?.message?.content?.trim();
-    if (!responseText) {
-      throw new Error("No response from AI");
+      const responseText = completion.choices[0]?.message?.content?.trim();
+      if (!responseText) {
+        throw new Error("No response from AI");
+      }
+
+      // Parse AI response - handle potential markdown formatting
+      let cleanedResponse = responseText;
+      if (responseText.includes('```json')) {
+        cleanedResponse = responseText.replace(/```json\s*/, '').replace(/\s*```$/, '');
+      } else if (responseText.includes('```')) {
+        cleanedResponse = responseText.replace(/```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      aisleMapping = JSON.parse(cleanedResponse);
+      
+      // Cache the result
+      cacheStoreLayout(request.store, ingredientNames, aisleMapping);
     }
-
-    // Parse AI response - handle potential markdown formatting
-    let cleanedResponse = responseText;
-    if (responseText.includes('```json')) {
-      cleanedResponse = responseText.replace(/```json\s*/, '').replace(/\s*```$/, '');
-    } else if (responseText.includes('```')) {
-      cleanedResponse = responseText.replace(/```\s*/, '').replace(/\s*```$/, '');
-    }
-    
-    const aisleMapping = JSON.parse(cleanedResponse);
     
     // Create organized result with full ingredient objects
     const organizedIngredients: { [aisle: string]: ConsolidatedIngredient[] } = {};
