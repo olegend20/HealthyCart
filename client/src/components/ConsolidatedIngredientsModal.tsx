@@ -304,13 +304,54 @@ export function ConsolidatedIngredientsModal({
           </Card>
         </div>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden space-y-6">
+          {/* Always show ingredients list */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <ShoppingCart className="h-5 w-5 mr-2" />
+                Consolidated Ingredients List
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-64">
+                <div className="space-y-3">
+                  {consolidatedData.ingredients.map((ingredient, index) => (
+                    <div key={index} className="flex items-center justify-between border-b pb-2">
+                      <div>
+                        <span className="font-medium">
+                          {ingredient.totalAmount} {ingredient.unit} {ingredient.name}
+                        </span>
+                        {ingredient.usedInPlans.length > 1 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Used in: {ingredient.usedInPlans.join(', ')}
+                          </div>
+                        )}
+                        <Badge variant="outline" className="text-xs ml-2">
+                          {ingredient.category}
+                        </Badge>
+                      </div>
+                      <span className="text-sm text-gray-600 font-medium">
+                        ${ingredient.estimatedPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Purchase options */}
           {currentView === 'options' && (
-            <PurchaseOptionsSelector onOptionSelect={setCurrentView} />
+            <div className="space-y-4">
+              <Separator />
+              <PurchaseOptionsSelector onOptionSelect={setCurrentView} />
+            </div>
           )}
 
           {currentView === 'self' && (
             <div className="space-y-4">
+              <Separator />
               <div className="flex items-center justify-between">
                 <Button 
                   variant="ghost" 
@@ -318,7 +359,7 @@ export function ConsolidatedIngredientsModal({
                   className="flex items-center space-x-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Options</span>
+                  <span>Back to Purchase Options</span>
                 </Button>
                 <div className="flex items-center space-x-3">
                   {selectedStore && (
@@ -361,12 +402,15 @@ export function ConsolidatedIngredientsModal({
 
           {currentView === 'ai' && (
             <div className="space-y-4">
+              <Separator />
               <div className="flex items-center justify-between">
                 <Button 
                   variant="ghost" 
                   onClick={() => setCurrentView('options')}
+                  className="flex items-center space-x-2"
                 >
-                  ← Back to Options
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Purchase Options</span>
                 </Button>
                 <Button 
                   onClick={handleInstacartGeneration}

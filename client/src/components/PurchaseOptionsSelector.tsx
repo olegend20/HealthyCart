@@ -8,13 +8,13 @@ interface PurchaseOptionsSelectorProps {
 
 export function PurchaseOptionsSelector({ onOptionSelect }: PurchaseOptionsSelectorProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
-        <h3 className="text-xl font-semibold mb-2">How would you like to purchase these ingredients?</h3>
-        <p className="text-gray-600">Choose your preferred shopping method</p>
+        <h3 className="text-lg font-semibold mb-2">How would you like to purchase these ingredients?</h3>
+        <p className="text-gray-600 text-sm">Choose your preferred shopping method</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Self Purchase Option */}
         <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200">
           <CardHeader className="text-center pb-4">
