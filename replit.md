@@ -112,6 +112,18 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 18, 2025. Removed Pricing/Budget Features from Meal Planning System
+  - Removed budget input field from meal plan creation form for cleaner interface
+  - Eliminated pricing information from consolidated ingredients modal and backend services
+  - Updated ConsolidatedIngredient interface to remove estimatedPrice field
+  - Removed totalCost calculations from consolidated ingredients responses
+  - Simplified ingredients display to show only name, amount, unit, and category
+  - Enhanced "I already have this" functionality to work without pricing calculations
+  - Streamlined dashboard cards to show only essential metrics (shopping items, meal plans, recipes)
+  - Backend services no longer generate mock pricing data for more accurate user experience
+  - Purchase workflows (Self Purchase and AI Purchase) now focus on ingredient organization rather than cost optimization
+  - System is now more focused on meal planning and ingredient management without distracting/inaccurate pricing information
+
 - July 18, 2025. Phase 2 Consolidated Ingredients Feature Implementation Complete
   - Successfully implemented complete Purchase Options Selection workflow with enhanced UI
   - Enhanced Self Purchase workflow with AI-powered store aisle organization and print functionality

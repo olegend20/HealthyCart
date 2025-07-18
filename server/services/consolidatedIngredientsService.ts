@@ -6,7 +6,6 @@ export interface ConsolidatedIngredient {
   totalAmount: number;
   unit: string;
   category: string;
-  estimatedPrice: number;
   usedInPlans: string[];
   aisle?: string;
 }
@@ -14,7 +13,6 @@ export interface ConsolidatedIngredient {
 export interface ConsolidatedIngredientsResponse {
   id: string;
   name: string;
-  totalCost: number;
   ingredients: ConsolidatedIngredient[];
   metadata: {
     mealPlanCount: number;
@@ -68,7 +66,6 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
             totalAmount: amount,
             unit: ingredient.unit || "",
             category: ingredient.category || "other",
-            estimatedPrice: Math.random() * 5 + 1, // TODO: Replace with actual pricing
             usedInPlans: [mealPlan.name],
             aisle: undefined
           });
@@ -77,12 +74,10 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
     }
 
     const ingredients = Array.from(ingredientMap.values());
-    const totalCost = ingredients.reduce((sum, ing) => sum + ing.estimatedPrice, 0);
 
     return {
       id: `meal-plan-${mealPlanId}`,
       name: `${mealPlan.name} - Consolidated Ingredients`,
-      totalCost,
       ingredients,
       metadata: {
         mealPlanCount: 1,
@@ -134,7 +129,6 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
               totalAmount: amount,
               unit: ingredient.unit || "",
               category: ingredient.category || "other",
-              estimatedPrice: Math.random() * 5 + 1, // TODO: Replace with actual pricing
               usedInPlans: [mealPlan.name],
               aisle: undefined
             });
@@ -144,12 +138,10 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
     }
 
     const ingredients = Array.from(ingredientMap.values());
-    const totalCost = ingredients.reduce((sum, ing) => sum + ing.estimatedPrice, 0);
 
     return {
       id: `group-${groupId}`,
       name: `${group.name} - Consolidated Ingredients`,
-      totalCost,
       ingredients,
       metadata: {
         mealPlanCount: mealPlans.length,

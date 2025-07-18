@@ -211,10 +211,7 @@ export function ConsolidatedIngredientsModal({
     });
   };
 
-  const getFilteredTotalCost = () => {
-    const filteredIngredients = getFilteredIngredients();
-    return filteredIngredients.reduce((total, ingredient) => total + ingredient.estimatedPrice, 0);
-  };
+
 
   const generateDownloadContent = () => {
     if (!consolidatedData?.ingredients) return '';
@@ -295,22 +292,7 @@ export function ConsolidatedIngredientsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-green-600">
-                ${getFilteredTotalCost().toFixed(2)}
-              </div>
-              <div className="text-sm text-gray-600">
-                Total Cost
-                {excludedIngredients.size > 0 && (
-                  <span className="text-xs text-gray-500 block">
-                    (${consolidatedData.totalCost.toFixed(2)} originally)
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 flex-shrink-0">
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-blue-600">
@@ -389,9 +371,6 @@ export function ConsolidatedIngredientsModal({
                             </Badge>
                           </div>
                         </div>
-                        <span className={`text-sm font-medium ${isExcluded ? 'line-through text-gray-500' : 'text-gray-600'}`}>
-                          ${ingredient.estimatedPrice.toFixed(2)}
-                        </span>
                       </div>
                     );
                   })}

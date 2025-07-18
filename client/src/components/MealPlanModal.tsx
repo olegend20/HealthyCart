@@ -37,7 +37,6 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
   const getInitialFormData = () => ({
     name: '',
     duration: 7,
-    budget: '',
     startDate: new Date(),
     goals: [] as string[],
     mealTypes: ['dinner'] as string[],
@@ -227,22 +226,7 @@ export default function MealPlanModal({ isOpen, onClose, householdMembers = [] }
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="budget">Budget Target (optional)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
-                <Input
-                  id="budget"
-                  type="number"
-                  className="pl-8"
-                  value={formData.budget}
-                  onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-                  placeholder="80.00"
-                  step="0.01"
-                />
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-4">
 
             <div>
               <Label>Start Date</Label>
