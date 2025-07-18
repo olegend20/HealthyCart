@@ -230,7 +230,14 @@ IMPORTANT REQUIREMENTS:
 5. Provide detailed nutritional information
 6. Include specific cooking instructions
 7. Suggest ingredient substitutions for allergies/preferences
-8. **CRITICAL: Use PURCHASABLE UNITS for all ingredients** - specify amounts as they would be bought at the store (lbs, oz, cans, bottles, packages) NOT cooking measurements (cups, tablespoons, etc.). For example: "1 lb ground beef" not "1 cup ground beef", "1 can tomatoes" not "1 cup tomatoes", "8 oz cream cheese" not "1 cup cream cheese"
+8. **CRITICAL: Use PURCHASABLE UNITS for all ingredients** - specify amounts as they would be bought at the store (lbs, oz, cans, bottles, packages) NOT cooking measurements (cups, tablespoons, etc.). Examples:
+   - "1 lb ground beef" not "1 cup ground beef"
+   - "1 can (14.5 oz) diced tomatoes" not "1 cup tomatoes"
+   - "1 gallon milk" not "1 cup milk"
+   - "1 bag (2 lbs) mixed vegetables" not "1 cup mixed vegetables"
+   - "1 bottle (16 oz) olive oil" not "2 tablespoons olive oil"
+   - "1 loaf bread" not "4 slices bread"
+   - "1 dozen eggs" not "2 eggs"
 
 Please respond with a complete meal plan in JSON format with this exact structure:
 {

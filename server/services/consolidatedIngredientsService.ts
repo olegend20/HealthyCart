@@ -10,23 +10,67 @@ function consolidateAmounts(amount1: string, unit1: string, amount2: string, uni
       const parts = amount.split('+');
       let total = 0;
       for (const part of parts) {
-        const match = part.trim().match(/^\d+(\.\d+)?/);
+        const trimmed = part.trim();
+        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
         if (match) {
-          total += parseFloat(match[0]);
+          total += parseFloat(match[1]);
         }
       }
       return total;
     }
     
-    // Normal numeric extraction
-    const match = amount.match(/^\d+(\.\d+)?/);
-    return match ? parseFloat(match[0]) : 1;
+    // Normal numeric extraction - handle decimal numbers
+    const match = amount.match(/(\d+(?:\.\d+)?)/);
+    return match ? parseFloat(match[1]) : 1;
   };
   
-  // Normalize units for comparison
+  // Normalize units for comparison - handle common variations
   const normalizeUnit = (unit: string): string => {
     if (!unit) return '';
-    return unit.toLowerCase().trim();
+    const normalized = unit.toLowerCase().trim();
+    
+    // Handle unit variations
+    const unitMap: { [key: string]: string } = {
+      'lb': 'pound',
+      'lbs': 'pound',
+      'pound': 'pound',
+      'pounds': 'pound',
+      'oz': 'ounce',
+      'ounces': 'ounce',
+      'ounce': 'ounce',
+      'cup': 'cup',
+      'cups': 'cup',
+      'tbsp': 'tablespoon',
+      'tablespoons': 'tablespoon',
+      'tablespoon': 'tablespoon',
+      'tsp': 'teaspoon',
+      'teaspoons': 'teaspoon',
+      'teaspoon': 'teaspoon',
+      'clove': 'clove',
+      'cloves': 'clove',
+      'piece': 'piece',
+      'pieces': 'piece',
+      'can': 'can',
+      'cans': 'can',
+      'bottle': 'bottle',
+      'bottles': 'bottle',
+      'gallon': 'gallon',
+      'gallons': 'gallon',
+      'bag': 'bag',
+      'bags': 'bag',
+      'loaf': 'loaf',
+      'loaves': 'loaf',
+      'dozen': 'dozen',
+      'head': 'head',
+      'heads': 'head',
+      'stalk': 'stalk',
+      'stalks': 'stalk',
+      'medium': 'medium',
+      'large': 'large',
+      'small': 'small'
+    };
+    
+    return unitMap[normalized] || normalized;
   };
   
   // If units are the same or similar, try to add numeric values
@@ -107,7 +151,8 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
         if (ingredientMap.has(key)) {
           const existing = ingredientMap.get(key)!;
           // For purchasable units, we need smart consolidation
-          existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
+          const newAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
+          existing.totalAmount = newAmount;
           // Update unit to the most recent one if they're the same (case insensitive)
           if (ingredient.unit && (existing.unit && existing.unit.toLowerCase() === ingredient.unit.toLowerCase() || !existing.unit)) {
             existing.unit = ingredient.unit;
@@ -175,7 +220,8 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
           if (ingredientMap.has(key)) {
             const existing = ingredientMap.get(key)!;
             // For purchasable units, we need smart consolidation
-            existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
+            const newAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
+            existing.totalAmount = newAmount;
             // Update unit to the most recent one if they're the same (case insensitive)
             if (ingredient.unit && (existing.unit && existing.unit.toLowerCase() === ingredient.unit.toLowerCase() || !existing.unit)) {
               existing.unit = ingredient.unit;
