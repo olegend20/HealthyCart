@@ -182,21 +182,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const list of allGroceryLists) {
         for (const item of list.items) {
           const key = `${item.name}-${item.category}`;
+          const itemPrice = parseFloat(item.estimatedPrice) || 0;
+          
           if (consolidatedItems.has(key)) {
             const existing = consolidatedItems.get(key);
             existing.amount += item.amount;
-            existing.estimatedPrice += item.estimatedPrice;
+            existing.estimatedPrice += itemPrice;
           } else {
-            consolidatedItems.set(key, { ...item });
+            consolidatedItems.set(key, { ...item, estimatedPrice: itemPrice });
           }
-          totalCost += item.estimatedPrice;
+          totalCost += itemPrice;
         }
       }
+      
+      // Ensure totalCost is a number
+      const finalTotalCost = typeof totalCost === 'number' ? totalCost : 0;
       
       const consolidatedGroceryList = {
         id: `consolidated-${groupId}`,
         name: `Consolidated Grocery List`,
-        totalCost: totalCost.toFixed(2),
+        totalCost: finalTotalCost.toFixed(2),
         items: Array.from(consolidatedItems.values())
       };
       

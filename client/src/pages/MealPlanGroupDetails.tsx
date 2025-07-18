@@ -130,7 +130,7 @@ export default function MealPlanGroupDetails() {
   }
 
   const totalBudget = mealPlanGroup.mealPlans.reduce((sum: number, plan: MealPlan) => sum + (plan.budget || 0), 0);
-  const totalCost = mealPlanGroup.mealPlans.reduce((sum: number, plan: MealPlan) => sum + (plan.totalCost || 0), 0);
+  const totalCost = mealPlanGroup.mealPlans.reduce((sum: number, plan: MealPlan) => sum + (parseFloat(plan.totalCost as string) || 0), 0);
   const totalMeals = Object.values(mealsData).reduce((sum: number, meals: Meal[]) => sum + meals.length, 0);
 
   const categorizedGroceryItems = consolidatedGroceryList?.items?.reduce((acc: Record<string, GroceryListItem[]>, item: GroceryListItem) => {

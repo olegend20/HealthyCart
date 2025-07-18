@@ -112,6 +112,18 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 18, 2025. Fixed Consolidated Multi-Meal Plan Dashboard Display & Error Handling
+  - Fixed critical bug where CleanHome.tsx was displaying individual meal plans instead of consolidated groups
+  - Updated CleanHome.tsx to properly group meal plans by groupId for consolidated display
+  - Fixed totalCost.toFixed() error in MealPlanGroupDetails.tsx by ensuring proper number parsing
+  - Fixed backend consolidated grocery list API error handling for number type conversion
+  - Multi-meal plans now correctly appear as single "Week X" entries instead of separate individual plans
+  - Current Meal Plan section shows grouped information with all meal plans in the group
+  - Recent Meal Plan Groups section displays consolidated entries with combined budget and meal plan tags
+  - Active Plans counter shows the number of groups instead of individual plans
+  - Enhanced error handling for grocery list price calculations to prevent runtime errors
+  - System now properly consolidates "Adult Meal Plan" and "Kids Meal Plan" into unified "Week X" group entries
+
 - July 17, 2025. Multi-Meal Plan Generator with Ingredient Optimization & Nutrition Goals Integration
   - Implemented comprehensive multi-meal plan generation system for different target groups
   - Added MultiMealPlanForm component for creating multiple coordinated meal plans (adults, kids, dietary restrictions)
