@@ -127,6 +127,14 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   optional: boolean("optional").default(false),
 });
 
+// User recipes (tracks which recipes belong to which users)
+export const userRecipes = pgTable("user_recipes", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  recipeId: integer("recipe_id").references(() => recipes.id, { onDelete: "cascade" }).notNull(),
+  addedAt: timestamp("added_at").defaultNow(),
+});
+
 // Meals (instances of recipes in meal plans)
 export const meals = pgTable("meals", {
   id: serial("id").primaryKey(),
@@ -288,6 +296,17 @@ export const nutritionGoalsRelations = relations(nutritionGoals, ({ one }) => ({
   }),
 }));
 
+export const userRecipesRelations = relations(userRecipes, ({ one }) => ({
+  user: one(users, {
+    fields: [userRecipes.userId],
+    references: [users.id],
+  }),
+  recipe: one(recipes, {
+    fields: [userRecipes.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -309,6 +328,9 @@ export type Recipe = typeof recipes.$inferSelect;
 
 export type InsertRecipeIngredient = typeof recipeIngredients.$inferInsert;
 export type RecipeIngredient = typeof recipeIngredients.$inferSelect;
+
+export type InsertUserRecipe = typeof userRecipes.$inferInsert;
+export type UserRecipe = typeof userRecipes.$inferSelect;
 
 export type InsertMeal = typeof meals.$inferInsert;
 export type Meal = typeof meals.$inferSelect;
@@ -363,6 +385,11 @@ export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({
 export const insertRecipeSchema = createInsertSchema(recipes).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertUserRecipeSchema = createInsertSchema(userRecipes).omit({
+  id: true,
+  addedAt: true,
 });
 
 export const insertMealSchema = createInsertSchema(meals).omit({

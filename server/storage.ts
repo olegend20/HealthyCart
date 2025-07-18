@@ -6,6 +6,7 @@ import {
   mealPlanGroups,
   recipes,
   recipeIngredients,
+  userRecipes,
   meals,
   groceryLists,
   groceryListItems,
@@ -262,6 +263,32 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(recipes.rating));
   }
 
+  async getUserRecipes(userId: string, limit = 50, offset = 0): Promise<Recipe[]> {
+    return await db
+      .select({
+        id: recipes.id,
+        name: recipes.name,
+        description: recipes.description,
+        instructions: recipes.instructions,
+        prepTime: recipes.prepTime,
+        cookTime: recipes.cookTime,
+        servings: recipes.servings,
+        difficulty: recipes.difficulty,
+        cuisine: recipes.cuisine,
+        tags: recipes.tags,
+        nutritionFacts: recipes.nutritionFacts,
+        rating: recipes.rating,
+        imageUrl: recipes.imageUrl,
+        createdAt: recipes.createdAt,
+      })
+      .from(recipes)
+      .innerJoin(userRecipes, eq(recipes.id, userRecipes.recipeId))
+      .where(eq(userRecipes.userId, userId))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(recipes.rating));
+  }
+
   async getRecipe(id: number): Promise<Recipe | undefined> {
     const [result] = await db.select().from(recipes).where(eq(recipes.id, id));
     return result;
@@ -292,6 +319,47 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await queryBuilder.orderBy(desc(recipes.rating));
+  }
+
+  async searchUserRecipes(userId: string, query: string, tags?: string[]): Promise<Recipe[]> {
+    let queryBuilder = db
+      .select({
+        id: recipes.id,
+        name: recipes.name,
+        description: recipes.description,
+        instructions: recipes.instructions,
+        prepTime: recipes.prepTime,
+        cookTime: recipes.cookTime,
+        servings: recipes.servings,
+        difficulty: recipes.difficulty,
+        cuisine: recipes.cuisine,
+        tags: recipes.tags,
+        nutritionFacts: recipes.nutritionFacts,
+        rating: recipes.rating,
+        imageUrl: recipes.imageUrl,
+        createdAt: recipes.createdAt,
+      })
+      .from(recipes)
+      .innerJoin(userRecipes, eq(recipes.id, userRecipes.recipeId))
+      .where(
+        and(
+          eq(userRecipes.userId, userId),
+          like(recipes.name, `%${query}%`)
+        )
+      );
+
+    if (tags && tags.length > 0) {
+      queryBuilder = queryBuilder.limit(50);
+    }
+
+    return await queryBuilder.orderBy(desc(recipes.rating));
+  }
+
+  async addRecipeToUser(userId: string, recipeId: number): Promise<void> {
+    await db.insert(userRecipes).values({
+      userId,
+      recipeId,
+    }).onConflictDoNothing();
   }
 
   // Recipe ingredients

@@ -369,8 +369,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = (page - 1) * limit;
+      const userId = req.user.claims?.sub || req.user.id;
       
-      const recipes = await storage.getRecipes(limit, offset);
+      const recipes = await storage.getUserRecipes(userId, limit, offset);
       res.json(recipes);
     } catch (error) {
       console.error("Error fetching recipes:", error);
@@ -382,8 +383,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const query = req.query.q as string || '';
       const tags = req.query.tags ? (req.query.tags as string).split(',') : [];
+      const userId = req.user.claims?.sub || req.user.id;
       
-      const recipes = await storage.searchRecipes(query, tags);
+      const recipes = await storage.searchUserRecipes(userId, query, tags);
       res.json(recipes);
     } catch (error) {
       console.error("Error searching recipes:", error);
@@ -404,6 +406,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching recipe:", error);
       res.status(500).json({ message: "Failed to fetch recipe" });
+    }
+  });
+
+  // Route to add a recipe to user's library
+  app.post('/api/recipes/:id/add', isAuthenticated, async (req: any, res) => {
+    try {
+      const recipeId = parseInt(req.params.id);
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      if (isNaN(recipeId)) {
+        return res.status(400).json({ message: "Invalid recipe ID" });
+      }
+      
+      await storage.addRecipeToUser(userId, recipeId);
+      res.json({ message: "Recipe added to library" });
+    } catch (error) {
+      console.error("Error adding recipe to user library:", error);
+      res.status(500).json({ message: "Failed to add recipe to library" });
     }
   });
 
@@ -859,46 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Recipe routes
-  app.get('/api/recipes', async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
-      const recipes = await storage.getRecipes(limit, offset);
-      res.json(recipes);
-    } catch (error) {
-      console.error("Error fetching recipes:", error);
-      res.status(500).json({ message: "Failed to fetch recipes" });
-    }
-  });
 
-  app.get('/api/recipes/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const recipe = await storage.getRecipeWithIngredients(id);
-      
-      if (!recipe) {
-        return res.status(404).json({ message: "Recipe not found" });
-      }
-
-      res.json(recipe);
-    } catch (error) {
-      console.error("Error fetching recipe:", error);
-      res.status(500).json({ message: "Failed to fetch recipe" });
-    }
-  });
-
-  app.get('/api/recipes/search', async (req, res) => {
-    try {
-      const query = req.query.q as string || "";
-      const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
-      const recipes = await storage.searchRecipes(query, tags);
-      res.json(recipes);
-    } catch (error) {
-      console.error("Error searching recipes:", error);
-      res.status(500).json({ message: "Failed to search recipes" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
