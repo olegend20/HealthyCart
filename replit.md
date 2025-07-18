@@ -112,6 +112,18 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 18, 2025. Completed Cost Estimation Implementation with Comprehensive Disclaimers
+  - Successfully implemented cost estimation throughout the consolidated ingredients feature
+  - Added estimated pricing to ConsolidatedIngredientsModal with prominent cost display cards and amber disclaimer banners
+  - Enhanced InstacartFormatView summary section with cost information and "may vary" warnings
+  - Updated PrintableShoppingList with total cost, section-level costs, and individual ingredient pricing
+  - Added comprehensive price disclaimers warning users that estimates may vary significantly by store, location, brand, and time
+  - Fixed JavaScript parsing errors in consolidatedIngredientsService by removing duplicate generateEstimatedPrice functions
+  - Updated generateDownloadContent to include cost information with disclaimers in downloaded shopping lists
+  - Backend services now properly calculate and return totalCost for both individual meal plans and multi-meal plan groups
+  - All cost displays include clear warnings that prices are estimates only and should be used for planning purposes
+  - System maintains grocery-ready format while providing helpful cost planning information with appropriate disclaimers
+
 - July 18, 2025. Redesigned Meal Planning Architecture - ChatGPT Generates Complete Meal Plans with Instacart-Ready Ingredients
   - Completely redesigned multi-meal plan generation to have OpenAI/ChatGPT generate everything in proper format from the start
   - Enhanced OpenAI prompts to generate ingredients already in Instacart-friendly format (lbs, packages, bottles, bags)
