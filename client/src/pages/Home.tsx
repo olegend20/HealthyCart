@@ -24,34 +24,33 @@ export default function Home() {
     queryKey: ['/api/household-members'],
   });
 
-  // If we have meal plan groups, use them; otherwise, group individual meal plans by groupId
-  const displayData = mealPlanGroups.length > 0 ? mealPlanGroups : 
-    mealPlans.reduce((groups: any[], plan: any) => {
-      if (plan.groupId) {
-        let group = groups.find(g => g.id === plan.groupId);
-        if (!group) {
-          group = {
-            id: plan.groupId,
-            name: `Week ${plan.groupId}`,
-            description: 'Coordinated meal plans for multiple target groups',
-            createdAt: plan.createdAt,
-            mealPlans: []
-          };
-          groups.push(group);
-        }
-        group.mealPlans.push(plan);
-      } else {
-        // For individual plans without groups, create a single-plan group
-        groups.push({
-          id: `single-${plan.id}`,
-          name: plan.name,
-          description: plan.targetGroup,
+  // Group individual meal plans by groupId, always use this approach for now
+  const displayData = mealPlans.reduce((groups: any[], plan: any) => {
+    if (plan.groupId) {
+      let group = groups.find(g => g.id === plan.groupId);
+      if (!group) {
+        group = {
+          id: plan.groupId,
+          name: `Week ${plan.groupId}`,
+          description: 'Coordinated meal plans for multiple target groups',
           createdAt: plan.createdAt,
-          mealPlans: [plan]
-        });
+          mealPlans: []
+        };
+        groups.push(group);
       }
-      return groups;
-    }, []);
+      group.mealPlans.push(plan);
+    } else {
+      // For individual plans without groups, create a single-plan group
+      groups.push({
+        id: `single-${plan.id}`,
+        name: plan.name,
+        description: plan.targetGroup,
+        createdAt: plan.createdAt,
+        mealPlans: [plan]
+      });
+    }
+    return groups;
+  }, []);
 
   const recentMealPlanGroups = displayData.slice(0, 3);
 
@@ -59,6 +58,7 @@ export default function Home() {
   console.log('Meal plan groups:', mealPlanGroups);
   console.log('Meal plans:', mealPlans);
   console.log('Display data:', displayData);
+  console.log('Groups error:', groupsError);
 
   if (showWizard) {
     return (

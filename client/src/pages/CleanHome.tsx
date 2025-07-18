@@ -94,8 +94,44 @@ export default function CleanHome() {
     );
   }
 
+  // Group meal plans by groupId for consolidated display
+  const groupedMealPlans = mealPlans.reduce((groups: any[], plan: any) => {
+    if (plan.groupId) {
+      let group = groups.find(g => g.id === plan.groupId);
+      if (!group) {
+        group = {
+          id: plan.groupId,
+          name: `Week ${plan.groupId}`,
+          description: 'Coordinated meal plans for multiple target groups',
+          createdAt: plan.createdAt,
+          status: plan.status,
+          budget: 0,
+          mealPlans: []
+        };
+        groups.push(group);
+      }
+      group.mealPlans.push(plan);
+      group.budget += parseFloat(plan.budget || '0');
+    } else {
+      // For individual plans without groups, create a single-plan group
+      groups.push({
+        id: `single-${plan.id}`,
+        name: plan.name,
+        description: plan.targetGroup || 'Individual meal plan',
+        createdAt: plan.createdAt,
+        status: plan.status,
+        budget: parseFloat(plan.budget || '0'),
+        mealPlans: [plan]
+      });
+    }
+    return groups;
+  }, []);
+
   const activeMealPlans = mealPlans.filter(plan => plan.status === 'active');
-  const currentMealPlan = activeMealPlans[0];
+  const activeGroups = groupedMealPlans.filter(group => 
+    group.mealPlans.some((plan: any) => plan.status === 'active')
+  );
+  const currentMealPlan = activeGroups[0];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -194,7 +230,7 @@ export default function CleanHome() {
                 <div>
                   <p className="text-sm font-medium text-gray-500">Active Plans</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {activeMealPlans.length}
+                    {activeGroups.length}
                   </p>
                 </div>
               </div>
@@ -261,13 +297,23 @@ export default function CleanHome() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Budget</p>
-                        <p className="font-medium">${currentMealPlan.budget || 'Not set'}</p>
+                        <p className="font-medium">${currentMealPlan.budget.toFixed(2) || 'Not set'}</p>
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-500 mb-2">Meal Plans ({currentMealPlan.mealPlans.length})</p>
+                      <div className="flex flex-wrap gap-2">
+                        {currentMealPlan.mealPlans.map((plan: any) => (
+                          <span key={plan.id} className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            {plan.name}
+                          </span>
+                        ))}
                       </div>
                     </div>
                     <div className="flex space-x-3">
                       <Button asChild className="flex-1">
-                        <Link href={`/meal-plan/${currentMealPlan.id}`}>
-                          View Details
+                        <Link href={`/meal-plan-group/${currentMealPlan.id}`}>
+                          View Group Details
                         </Link>
                       </Button>
                       <Button 
@@ -308,22 +354,32 @@ export default function CleanHome() {
               </Card>
             )}
             
-            {/* Recent Meal Plans */}
-            {mealPlans.length > 1 && (
+            {/* Recent Meal Plan Groups */}
+            {groupedMealPlans.length > 1 && (
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle>Recent Meal Plans</CardTitle>
+                  <CardTitle>Recent Meal Plan Groups</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mealPlans.slice(0, 3).map((plan: any) => (
-                      <div key={plan.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{plan.name}</p>
-                          <p className="text-sm text-gray-500 capitalize">{plan.status}</p>
+                    {groupedMealPlans.slice(0, 3).map((group: any) => (
+                      <div key={group.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium">{group.name}</p>
+                          <p className="text-sm text-gray-500 capitalize">{group.status}</p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {group.mealPlans.length} meal plans • ${group.budget.toFixed(2)}
+                          </p>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {group.mealPlans.map((plan: any) => (
+                              <span key={plan.id} className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                {plan.name}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                         <Button size="sm" variant="ghost" asChild>
-                          <Link href={`/meal-plan/${plan.id}`}>View</Link>
+                          <Link href={`/meal-plan-group/${group.id}`}>View</Link>
                         </Button>
                       </div>
                     ))}
