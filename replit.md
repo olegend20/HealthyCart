@@ -112,6 +112,17 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 18, 2025. Consolidated Ingredients Feature Design & Architecture Planning
+  - Created comprehensive design document (CONSOLIDATED_INGREDIENTS_DESIGN.md) for advanced ingredient consumption workflows
+  - Developed detailed feature tracker (CONSOLIDATED_INGREDIENTS_FEATURES.md) with 10 core features across 4-week implementation plan
+  - Designed two-option purchase workflow: Self Purchase (store aisle organization) and AI Purchase (Instacart integration)
+  - Analyzed existing infrastructure: grocery list consolidation API, database schema, and UI components already support core functionality
+  - Planned OpenAI integration for store-specific aisle organization and ChatGPT Instacart formatting
+  - Identified integration points with existing meal plan interfaces for seamless user experience
+  - Established success metrics: 80% adoption rate, both options used by 40% of users, <500ms consolidation performance
+  - Feature leverages existing consolidated grocery list functionality while adding specialized purchasing workflows
+  - Implementation phases: Week 1 (Core Infrastructure), Week 2 (Self Purchase), Week 3 (AI Purchase), Week 4 (Polish)
+
 - July 18, 2025. Fixed Consolidated Multi-Meal Plan Dashboard Display & Error Handling
   - Fixed critical bug where CleanHome.tsx was displaying individual meal plans instead of consolidated groups
   - Updated CleanHome.tsx to properly group meal plans by groupId for consolidated display
