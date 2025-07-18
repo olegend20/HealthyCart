@@ -215,12 +215,17 @@ export function ConsolidatedIngredientsModal({
   const generateDownloadContent = () => {
     if (!consolidatedData?.ingredients) return '';
     
+    const filteredIngredients = getFilteredIngredients();
+    const filteredTotalCost = filteredIngredients.reduce((sum, ingredient) => sum + ingredient.estimatedPrice, 0);
+    
     let content = `${consolidatedData.name}\n`;
-    content += `Total Cost: $${consolidatedData.totalCost.toFixed(2)}\n`;
-    content += `Items: ${consolidatedData.metadata.totalItems}\n\n`;
+    content += `Estimated Total Cost: $${filteredTotalCost.toFixed(2)}\n`;
+    content += `Items: ${filteredIngredients.length}\n`;
+    content += `\n* PRICE DISCLAIMER: All prices are estimates and may vary significantly by store, location, brand, and time.\n`;
+    content += `  Use these estimates for planning purposes only. Actual costs may be higher or lower than shown.\n\n`;
     
     // Group by category
-    const groupedIngredients = consolidatedData.ingredients.reduce((acc, ingredient) => {
+    const groupedIngredients = filteredIngredients.reduce((acc, ingredient) => {
       const category = ingredient.category || 'Other';
       if (!acc[category]) acc[category] = [];
       acc[category].push(ingredient);
@@ -230,7 +235,7 @@ export function ConsolidatedIngredientsModal({
     Object.entries(groupedIngredients).forEach(([category, ingredients]) => {
       content += `${category}:\n`;
       ingredients.forEach(ingredient => {
-        content += `  - ${ingredient.totalAmount} ${ingredient.unit} ${ingredient.name}\n`;
+        content += `  - ${ingredient.totalAmount} ${ingredient.unit} ${ingredient.name} (~$${ingredient.estimatedPrice.toFixed(2)})\n`;
       });
       content += '\n';
     });
@@ -422,7 +427,7 @@ export function ConsolidatedIngredientsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 flex-shrink-0">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0">
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-blue-600">
@@ -435,6 +440,19 @@ export function ConsolidatedIngredientsModal({
                     ({consolidatedData.metadata.totalItems} originally)
                   </span>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-green-600">
+                ${getFilteredIngredients().reduce((sum, ingredient) => sum + ingredient.estimatedPrice, 0).toFixed(2)}
+              </div>
+              <div className="text-sm text-gray-600">
+                Estimated Cost
+                <span className="text-xs text-gray-500 block">
+                  *Prices may vary
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -514,6 +532,10 @@ export function ConsolidatedIngredientsModal({
                   <ShoppingCart className="h-5 w-5 mr-2" />
                   Consolidated Ingredients List
                 </CardTitle>
+                <CardDescription className="text-sm text-amber-600 bg-amber-50 p-3 rounded border border-amber-200">
+                  <strong>Price Disclaimer:</strong> All prices are estimates and may vary significantly by store, location, brand, and time. 
+                  Use these estimates for planning purposes only. Actual costs may be higher or lower than shown.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -539,6 +561,9 @@ export function ConsolidatedIngredientsModal({
                           <div className="flex-1">
                             <span className={`font-medium ${isExcluded ? 'line-through text-gray-500' : ''}`}>
                               {ingredient.totalAmount} {ingredient.unit} {ingredient.name}
+                            </span>
+                            <span className={`ml-2 text-green-600 font-medium ${isExcluded ? 'line-through' : ''}`}>
+                              ~${ingredient.estimatedPrice.toFixed(2)}
                             </span>
                             {ingredient.usedInPlans.length > 1 && (
                               <div className="text-xs text-gray-500 mt-1">

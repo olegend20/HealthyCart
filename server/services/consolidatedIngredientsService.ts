@@ -114,11 +114,13 @@ export interface ConsolidatedIngredient {
   category: string;
   usedInPlans: string[];
   aisle?: string;
+  estimatedPrice: number;
 }
 
 export interface ConsolidatedIngredientsResponse {
   id: string;
   name: string;
+  totalCost: number;
   ingredients: ConsolidatedIngredient[];
   metadata: {
     mealPlanCount: number;
@@ -172,29 +174,34 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
           );
           existing.totalAmount = consolidatedResult.amount;
           existing.unit = consolidatedResult.unit;
+          existing.estimatedPrice = estimateGroceryPrice(ingredient.name, consolidatedResult.amount, consolidatedResult.unit);
           if (!existing.usedInPlans.includes(mealPlan.name)) {
             existing.usedInPlans.push(mealPlan.name);
           }
         } else {
           // Convert initial ingredient to grocery format
           const convertedResult = convertToGroceryFormatWithAmount(ingredient.name, amount, ingredient.unit || "");
+          const estimatedPrice = estimateGroceryPrice(ingredient.name, convertedResult.amount, convertedResult.unit);
           ingredientMap.set(key, {
             name: ingredient.name,
             totalAmount: convertedResult.amount,
             unit: convertedResult.unit,
             category: ingredient.category || "other",
             usedInPlans: [mealPlan.name],
-            aisle: undefined
+            aisle: undefined,
+            estimatedPrice: estimatedPrice
           });
         }
       }
     }
 
     const ingredients = Array.from(ingredientMap.values());
+    const totalCost = ingredients.reduce((sum, ingredient) => sum + ingredient.estimatedPrice, 0);
 
     return {
       id: `meal-plan-${mealPlanId}`,
       name: `${mealPlan.name} - Consolidated Ingredients`,
+      totalCost: totalCost,
       ingredients,
       metadata: {
         mealPlanCount: 1,
@@ -246,19 +253,22 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
             );
             existing.totalAmount = consolidatedResult.amount;
             existing.unit = consolidatedResult.unit;
+            existing.estimatedPrice = estimateGroceryPrice(ingredient.name, consolidatedResult.amount, consolidatedResult.unit);
             if (!existing.usedInPlans.includes(mealPlan.name)) {
               existing.usedInPlans.push(mealPlan.name);
             }
           } else {
             // Convert initial ingredient to grocery format
             const convertedResult = convertToGroceryFormatWithAmount(ingredient.name, amount, ingredient.unit || "");
+            const estimatedPrice = estimateGroceryPrice(ingredient.name, convertedResult.amount, convertedResult.unit);
             ingredientMap.set(key, {
               name: ingredient.name,
               totalAmount: convertedResult.amount,
               unit: convertedResult.unit,
               category: ingredient.category || "other",
               usedInPlans: [mealPlan.name],
-              aisle: undefined
+              aisle: undefined,
+              estimatedPrice: estimatedPrice
             });
           }
         }
@@ -266,10 +276,12 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
     }
 
     const ingredients = Array.from(ingredientMap.values());
+    const totalCost = ingredients.reduce((sum, ingredient) => sum + ingredient.estimatedPrice, 0);
 
     return {
       id: `group-${groupId}`,
       name: `${group.name} - Consolidated Ingredients`,
+      totalCost: totalCost,
       ingredients,
       metadata: {
         mealPlanCount: mealPlans.length,
@@ -490,6 +502,45 @@ Prefer organic options when available.`;
     
     return fallbackFormat;
   }
+}
+
+// Helper function to estimate price for grocery items
+function estimateGroceryPrice(name: string, amount: string | number, unit: string): number {
+  const lowerName = name.toLowerCase();
+  const lowerUnit = unit.toLowerCase();
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) || 1 : amount;
+
+  // Price estimates based on common grocery items (these are rough estimates)
+  if (lowerName.includes('chicken') || lowerName.includes('beef') || lowerName.includes('pork')) {
+    if (lowerUnit.includes('lb')) return numAmount * 6.99; // $6.99/lb for meat
+    return 8.99; // package price
+  }
+  
+  if (lowerName.includes('flour') && lowerUnit.includes('bag')) return 3.99;
+  if (lowerName.includes('sugar') && lowerUnit.includes('bag')) return 2.99;
+  if (lowerName.includes('milk') && lowerUnit.includes('gallon')) return 3.49;
+  if (lowerName.includes('oil') && lowerUnit.includes('bottle')) return 4.99;
+  if (lowerName.includes('cheese') && lowerUnit.includes('package')) return 3.99;
+  if (lowerName.includes('pasta') && lowerUnit.includes('box')) return 1.29;
+  if (lowerName.includes('rice') && lowerUnit.includes('bag')) return 2.99;
+  
+  // Produce items
+  if (lowerName.includes('onion') || lowerName.includes('bell pepper')) {
+    if (lowerUnit.includes('each')) return numAmount * 0.89;
+    if (lowerUnit.includes('bag')) return 2.99;
+  }
+  
+  // Canned goods
+  if (lowerName.includes('can') || lowerUnit.includes('can')) return numAmount * 1.49;
+  
+  // Default estimates
+  if (lowerUnit.includes('package')) return 2.99;
+  if (lowerUnit.includes('bottle')) return 3.99;
+  if (lowerUnit.includes('bag')) return 2.49;
+  if (lowerUnit.includes('each')) return numAmount * 0.99;
+  if (lowerUnit.includes('lb')) return numAmount * 2.99;
+  
+  return 1.99; // fallback price
 }
 
 // Helper function to convert cooking measurements to grocery shopping format with separate amount and unit

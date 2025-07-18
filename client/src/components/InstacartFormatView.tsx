@@ -162,7 +162,10 @@ Prefer organic options when available.`;
               <div className="text-2xl font-bold text-green-600">
                 ${ingredients.reduce((sum, ing) => sum + ing.estimatedPrice, 0).toFixed(2)}
               </div>
-              <div className="text-sm text-gray-600">Est. Cost</div>
+              <div className="text-sm text-gray-600">
+                Est. Cost
+                <div className="text-xs text-amber-600">*May vary</div>
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">

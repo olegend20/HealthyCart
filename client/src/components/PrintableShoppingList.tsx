@@ -22,6 +22,7 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
     }, {} as { [key: string]: ConsolidatedIngredient[] });
 
     const totalItems = ingredients.length;
+    const totalCost = ingredients.reduce((sum, ingredient) => sum + ingredient.estimatedPrice, 0);
 
     return (
       <div ref={ref} className="print-container bg-white p-8 space-y-6">
@@ -59,10 +60,15 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
         </div>
 
         {/* Shopping Progress */}
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-4 gap-4 text-center">
           <div className="border rounded p-3">
             <div className="font-bold text-lg">Total Items</div>
             <div className="text-2xl text-blue-600">{totalItems}</div>
+          </div>
+          <div className="border rounded p-3">
+            <div className="font-bold text-lg">Est. Cost</div>
+            <div className="text-2xl text-green-600">${totalCost.toFixed(2)}</div>
+            <div className="text-xs text-amber-600">*Estimate only</div>
           </div>
           <div className="border rounded p-3">
             <div className="font-bold text-lg">Categories</div>
@@ -74,6 +80,14 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
           </div>
         </div>
 
+        {/* Price Disclaimer */}
+        <div className="bg-amber-50 border border-amber-200 rounded p-4 text-center">
+          <div className="text-sm text-amber-700">
+            <strong>Price Disclaimer:</strong> All prices are estimates and may vary significantly by store, location, brand, and time. 
+            Use these estimates for planning purposes only. Actual costs may be higher or lower than shown.
+          </div>
+        </div>
+
         {/* Organized Shopping List */}
         <div className="space-y-6">
           {Object.entries(displayData).map(([section, sectionIngredients]) => (
@@ -81,7 +95,12 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
               <div className="bg-gray-50 px-4 py-3 border-b">
                 <h3 className="text-xl font-semibold flex items-center justify-between">
                   {section}
-                  <Badge variant="secondary">{sectionIngredients.length} items</Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary">{sectionIngredients.length} items</Badge>
+                    <Badge variant="outline" className="text-green-600">
+                      ~${sectionIngredients.reduce((sum, ing) => sum + ing.estimatedPrice, 0).toFixed(2)}
+                    </Badge>
+                  </div>
                 </h3>
               </div>
               <div className="p-4">
@@ -93,6 +112,9 @@ export const PrintableShoppingList = forwardRef<HTMLDivElement, PrintableShoppin
                         <div>
                           <span className="font-medium">
                             {ingredient.totalAmount} {ingredient.unit} {ingredient.name}
+                          </span>
+                          <span className="ml-2 text-green-600 font-medium">
+                            ~${ingredient.estimatedPrice.toFixed(2)}
                           </span>
                           {ingredient.usedInPlans.length > 1 && (
                             <div className="text-xs text-gray-500">
