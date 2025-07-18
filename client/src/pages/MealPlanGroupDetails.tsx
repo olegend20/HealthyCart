@@ -15,7 +15,7 @@ interface MealPlan {
   endDate: string;
   duration: number;
   budget?: number;
-  totalCost?: number;
+  totalCost?: number | string;
   goals: string[];
   mealTypes: string[];
   status: string;
@@ -211,7 +211,7 @@ export default function MealPlanGroupDetails() {
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <DollarSign className="h-4 w-4 mr-2" />
-                        ${(plan.totalCost || 0).toFixed(2)}
+                        ${(parseFloat(plan.totalCost as string) || 0).toFixed(2)}
                       </div>
                       <div className="flex flex-wrap gap-1 mt-2">
                         {plan.goals.slice(0, 3).map((goal: string) => (
