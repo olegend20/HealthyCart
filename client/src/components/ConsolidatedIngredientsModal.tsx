@@ -367,7 +367,11 @@ export function ConsolidatedIngredientsModal({
                             variant={isExcluded ? "default" : "outline"}
                             size="sm"
                             onClick={() => handleToggleIngredient(ingredientKey)}
-                            className={`text-xs ${isExcluded ? 'bg-green-600 hover:bg-green-700' : 'hover:bg-gray-100'}`}
+                            className={`text-xs transition-colors ${
+                              isExcluded 
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600' 
+                                : 'border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400'
+                            }`}
                           >
                             {isExcluded ? 'Have it' : 'I have this'}
                           </Button>
@@ -400,7 +404,7 @@ export function ConsolidatedIngredientsModal({
                           variant="ghost"
                           size="sm"
                           onClick={() => setExcludedIngredients(new Set())}
-                          className="text-xs"
+                          className="text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                         >
                           Reset all
                         </Button>
