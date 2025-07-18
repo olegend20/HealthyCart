@@ -202,8 +202,15 @@ Only return the JSON object, no other text.
       throw new Error("No response from AI");
     }
 
-    // Parse AI response
-    const aisleMapping = JSON.parse(responseText);
+    // Parse AI response - handle potential markdown formatting
+    let cleanedResponse = responseText;
+    if (responseText.includes('```json')) {
+      cleanedResponse = responseText.replace(/```json\s*/, '').replace(/\s*```$/, '');
+    } else if (responseText.includes('```')) {
+      cleanedResponse = responseText.replace(/```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    const aisleMapping = JSON.parse(cleanedResponse);
     
     // Create organized result with full ingredient objects
     const organizedIngredients: { [aisle: string]: ConsolidatedIngredient[] } = {};

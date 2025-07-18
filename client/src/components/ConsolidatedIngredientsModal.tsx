@@ -7,12 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ShoppingCart, Store, Bot, Loader2, Copy, Check, Download } from 'lucide-react';
+import { ShoppingCart, Store, Bot, Loader2, Copy, Check, Download, ArrowLeft, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PurchaseOptionsSelector } from './PurchaseOptionsSelector';
 import { StoreSelector } from './StoreSelector';
 import { AisleOrganizedView } from './AisleOrganizedView';
 import { InstacartFormatView } from './InstacartFormatView';
+import { PrintableShoppingList } from './PrintableShoppingList';
 import { apiRequest } from '@/lib/queryClient';
 
 export interface ConsolidatedIngredient {
@@ -57,6 +58,7 @@ export function ConsolidatedIngredientsModal({
   const [currentView, setCurrentView] = useState<PurchaseOption>('options');
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [printRef, setPrintRef] = useState<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -154,6 +156,38 @@ export function ConsolidatedIngredientsModal({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    if (printRef) {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Shopping List - ${consolidatedData?.name || 'Consolidated Ingredients'}</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                @media print {
+                  body { margin: 0; }
+                  @page { margin: 1in; }
+                }
+              </style>
+            </head>
+            <body>
+              ${printRef.innerHTML}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 500);
+      }
+    }
   };
 
   const generateDownloadContent = () => {
@@ -281,19 +315,46 @@ export function ConsolidatedIngredientsModal({
                 <Button 
                   variant="ghost" 
                   onClick={() => setCurrentView('options')}
+                  className="flex items-center space-x-2"
                 >
-                  ← Back to Options
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Options</span>
                 </Button>
-                <StoreSelector onStoreSelect={handleStoreSelection} />
+                <div className="flex items-center space-x-3">
+                  {selectedStore && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrint}
+                    >
+                      <Printer className="h-4 w-4 mr-2" />
+                      Print List
+                    </Button>
+                  )}
+                  <StoreSelector onStoreSelect={handleStoreSelection} />
+                </div>
               </div>
 
               {selectedStore && (
-                <AisleOrganizedView
-                  ingredients={consolidatedData.ingredients}
-                  store={selectedStore}
-                  organizedData={organizeByStoreMutation.data}
-                  isLoading={organizeByStoreMutation.isPending}
-                />
+                <>
+                  <AisleOrganizedView
+                    ingredients={consolidatedData.ingredients}
+                    store={selectedStore}
+                    organizedData={organizeByStoreMutation.data}
+                    isLoading={organizeByStoreMutation.isPending}
+                  />
+                  
+                  {/* Hidden printable version */}
+                  <div style={{ display: 'none' }}>
+                    <PrintableShoppingList
+                      ref={setPrintRef}
+                      ingredients={consolidatedData.ingredients}
+                      organizedData={organizeByStoreMutation.data}
+                      store={selectedStore}
+                      title={consolidatedData.name}
+                    />
+                  </div>
+                </>
               )}
             </div>
           )}
