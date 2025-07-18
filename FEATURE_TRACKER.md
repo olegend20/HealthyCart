@@ -1,4 +1,4 @@
-# FoodGo Feature Tracker
+# HealthyCart Feature Tracker
 
 ## Feature Status Legend
 - 🔴 **Disabled**: Feature not implemented

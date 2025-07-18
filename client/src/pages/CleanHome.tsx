@@ -142,7 +142,7 @@ export default function CleanHome() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Utensils className="h-8 w-8 text-primary mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">FoodGo</h1>
+              <h1 className="text-xl font-bold text-gray-900">HealthyCart</h1>
             </div>
             <nav className="hidden md:flex space-x-8">
               <Link href="/" className="text-primary font-medium">

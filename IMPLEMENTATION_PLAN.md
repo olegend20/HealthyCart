@@ -1,4 +1,4 @@
-# FoodGo Implementation Plan
+# HealthyCart Implementation Plan
 
 ## Current State Analysis
 

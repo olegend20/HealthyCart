@@ -70,7 +70,7 @@ export default function AuthForm() {
       queryClient.setQueryData(["/api/auth/user"], data);
       toast({
         title: "Account created!",
-        description: "Welcome to FoodGo! Your account has been created successfully.",
+        description: "Welcome to HealthyCart! Your account has been created successfully.",
       });
     },
     onError: (error: any) => {
@@ -96,7 +96,7 @@ export default function AuthForm() {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <Utensils className="h-8 w-8 text-primary mr-2" />
-            <h1 className="text-2xl font-bold text-gray-900">FoodGo</h1>
+            <h1 className="text-2xl font-bold text-gray-900">HealthyCart</h1>
           </div>
           <CardTitle className="text-2xl">Welcome</CardTitle>
           <CardDescription>

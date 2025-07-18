@@ -75,7 +75,7 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome to FoodGo
+            Welcome to HealthyCart
           </h1>
           <p className="text-lg text-gray-600">
             AI-powered meal planning that saves time and reduces food waste

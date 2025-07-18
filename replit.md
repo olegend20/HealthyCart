@@ -1,7 +1,7 @@
-# FoodGo - AI-Powered Meal Planning Platform
+# HealthyCart - AI-Powered Meal Planning Platform
 
 ## Overview
-FoodGo is an advanced AI-powered meal planning platform that generates comprehensive weekly meal plans tailored to user preferences, dietary needs, and nutritional goals. The platform helps users save time and money through intelligent ingredient optimization and automated grocery list generation.
+HealthyCart is an advanced AI-powered meal planning platform that generates comprehensive weekly meal plans tailored to user preferences, dietary needs, and nutritional goals. The platform helps users save time and money through intelligent ingredient optimization and automated grocery list generation.
 
 ## Architecture
 - **Frontend**: React with TypeScript, Tailwind CSS, and shadcn/ui components
@@ -44,6 +44,18 @@ FoodGo is an advanced AI-powered meal planning platform that generates comprehen
 - Password management: `/api/auth/change-password`
 
 ## Recent Changes
+- ✅ **January 18, 2025**: Rebranded from FoodGo to HealthyCart
+  - Updated all UI components and branding elements
+  - Changed application name throughout codebase
+  - Updated HTML title and meta descriptions
+  - Modified landing page and authentication forms
+  - Updated project documentation and design files
+- ✅ **January 18, 2025**: Fixed recipe data isolation issue
+  - Created user-specific recipe system using userRecipes table
+  - New users now start with empty recipe library
+  - Added methods to add recipes to user libraries
+  - Fixed duplicate recipe routes causing global access
+  - Updated authentication to work with HTTP cookies
 - ✅ **January 18, 2025**: Implemented custom email/password authentication
   - Added database schema for password authentication
   - Created AuthService with bcrypt password hashing

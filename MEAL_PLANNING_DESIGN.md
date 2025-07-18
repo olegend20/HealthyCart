@@ -1,7 +1,7 @@
-# FoodGo Meal Planning System Design Document
+# HealthyCart Meal Planning System Design Document
 
 ## Overview
-FoodGo needs a comprehensive meal planning workflow that generates individual recipes for each requested meal, allows user approval/rejection, and creates finalized grocery lists only after meal approval.
+HealthyCart needs a comprehensive meal planning workflow that generates individual recipes for each requested meal, allows user approval/rejection, and creates finalized grocery lists only after meal approval.
 
 ## Current Issues
 - Meal plan generation creates a plan without individual recipes

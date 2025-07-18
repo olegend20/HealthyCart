@@ -11,7 +11,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Utensils className="h-8 w-8 text-primary mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">FoodGo</h1>
+              <h1 className="text-xl font-bold text-gray-900">HealthyCart</h1>
             </div>
             <Button 
               onClick={() => window.location.href = '/api/login'}
@@ -52,7 +52,7 @@ export default function Landing() {
               Everything You Need for Smart Meal Planning
             </h3>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              FoodGo uses artificial intelligence to create optimized meal plans that save you time and money
+              HealthyCart uses artificial intelligence to create optimized meal plans that save you time and money
             </p>
           </div>
 
@@ -175,7 +175,7 @@ export default function Landing() {
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
               <Utensils className="h-6 w-6 text-primary mr-2" />
-              <span className="font-bold text-gray-900">FoodGo</span>
+              <span className="font-bold text-gray-900">HealthyCart</span>
             </div>
             <p className="text-sm text-gray-600">
               Smart meal planning that saves time and money while keeping your family healthy.
