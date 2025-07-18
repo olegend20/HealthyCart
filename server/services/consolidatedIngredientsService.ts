@@ -3,8 +3,24 @@ import OpenAI from "openai";
 
 // Smart consolidation for purchasable units
 function consolidateAmounts(amount1: string, unit1: string, amount2: string, unit2: string): string {
-  // Extract numeric values from amount strings
+  console.log(`Consolidating: "${amount1}" ${unit1} + "${amount2}" ${unit2}`);
+  
+  // Extract numeric values from amount strings, handling already concatenated amounts
   const extractNumber = (amount: string): number => {
+    // If amount already contains "+", it's a concatenated string - extract first number
+    if (amount.includes('+')) {
+      const parts = amount.split('+');
+      let total = 0;
+      for (const part of parts) {
+        const match = part.trim().match(/^\d+(\.\d+)?/);
+        if (match) {
+          total += parseFloat(match[0]);
+        }
+      }
+      return total;
+    }
+    
+    // Normal numeric extraction
     const match = amount.match(/^\d+(\.\d+)?/);
     return match ? parseFloat(match[0]) : 1;
   };
@@ -16,6 +32,8 @@ function consolidateAmounts(amount1: string, unit1: string, amount2: string, uni
     const num2 = extractNumber(amount2);
     const total = num1 + num2;
     
+    console.log(`Consolidation result: ${num1} + ${num2} = ${total}`);
+    
     // Return the consolidated amount with proper formatting
     if (total === Math.floor(total)) {
       return total.toString();
@@ -26,6 +44,7 @@ function consolidateAmounts(amount1: string, unit1: string, amount2: string, uni
   
   // For different units, keep them separate but clearly indicate
   if (amount1 && amount2) {
+    console.log(`Different units, keeping separate: ${amount1} + ${amount2}`);
     return `${amount1} + ${amount2}`;
   }
   
