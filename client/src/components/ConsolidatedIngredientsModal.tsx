@@ -212,6 +212,32 @@ export function ConsolidatedIngredientsModal({
     });
   };
 
+  const generateDownloadContent = () => {
+    if (!consolidatedData?.ingredients) return '';
+    
+    let content = `${consolidatedData.name}\n`;
+    content += `Total Cost: $${consolidatedData.totalCost.toFixed(2)}\n`;
+    content += `Items: ${consolidatedData.metadata.totalItems}\n\n`;
+    
+    // Group by category
+    const groupedIngredients = consolidatedData.ingredients.reduce((acc, ingredient) => {
+      const category = ingredient.category || 'Other';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(ingredient);
+      return acc;
+    }, {} as Record<string, ConsolidatedIngredient[]>);
+
+    Object.entries(groupedIngredients).forEach(([category, ingredients]) => {
+      content += `${category}:\n`;
+      ingredients.forEach(ingredient => {
+        content += `  - ${ingredient.totalAmount} ${ingredient.unit} ${ingredient.name}\n`;
+      });
+      content += '\n';
+    });
+
+    return content;
+  };
+
   // Keyboard shortcuts handler
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!isOpen) return;
@@ -303,34 +329,6 @@ export function ConsolidatedIngredientsModal({
       localStorage.setItem('consolidatedIngredients.preferredView', currentView);
     }
   }, [currentView]);
-
-
-
-  const generateDownloadContent = () => {
-    if (!consolidatedData?.ingredients) return '';
-    
-    let content = `${consolidatedData.name}\n`;
-    content += `Total Cost: $${consolidatedData.totalCost.toFixed(2)}\n`;
-    content += `Items: ${consolidatedData.metadata.totalItems}\n\n`;
-    
-    // Group by category
-    const groupedIngredients = consolidatedData.ingredients.reduce((acc, ingredient) => {
-      const category = ingredient.category || 'Other';
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(ingredient);
-      return acc;
-    }, {} as Record<string, ConsolidatedIngredient[]>);
-
-    Object.entries(groupedIngredients).forEach(([category, ingredients]) => {
-      content += `${category}:\n`;
-      ingredients.forEach(ingredient => {
-        content += `  - ${ingredient.totalAmount} ${ingredient.unit} ${ingredient.name}\n`;
-      });
-      content += '\n';
-    });
-
-    return content;
-  };
 
   if (isLoading) {
     return (
