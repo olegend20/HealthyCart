@@ -44,6 +44,12 @@ HealthyCart is an advanced AI-powered meal planning platform that generates comp
 - Password management: `/api/auth/change-password`
 
 ## Recent Changes
+- ✅ **January 18, 2025**: Created feature design tracker for existing recipe integration
+  - Analyzed current recipe and meal plan infrastructure
+  - Designed comprehensive feature specification in RECIPE_SELECTION_FEATURE.md
+  - Planned 3-week implementation roadmap with detailed milestones
+  - Identified required UI components and API endpoints
+  - Documented technical considerations and success metrics
 - ✅ **January 18, 2025**: Rebranded from FoodGo to HealthyCart
   - Updated all UI components and branding elements
   - Changed application name throughout codebase
@@ -71,7 +77,17 @@ HealthyCart is an advanced AI-powered meal planning platform that generates comp
 - Clean, modern UI with shadcn/ui components
 
 ## Next Steps
+
+### High Priority - Recipe Integration Feature
+- **Phase 1 (Week 1)**: Build recipe selection modal and assignment interface
+- **Phase 2 (Week 2)**: Implement backend API for mixed meal plan generation
+- **Phase 3 (Week 3)**: Add UX enhancements and mobile optimization
+
+### Future Authentication Enhancements
 - Future Google SSO integration planned
 - Email verification system can be added
 - Password reset functionality can be implemented
 - Two-factor authentication can be added for enhanced security
+
+## Feature Documentation
+- **RECIPE_SELECTION_FEATURE.md**: Comprehensive design and implementation tracker for adding existing recipes to meal plans
