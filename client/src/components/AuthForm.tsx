@@ -42,12 +42,8 @@ export default function AuthForm() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
-      const response = await apiRequest({
-        url: "/api/auth/login",
-        method: "POST",
-        data,
-      });
-      return response.data;
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      return await response.json();
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/user"], data);
@@ -67,12 +63,8 @@ export default function AuthForm() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      const response = await apiRequest({
-        url: "/api/auth/register",
-        method: "POST",
-        data,
-      });
-      return response.data;
+      const response = await apiRequest("POST", "/api/auth/register", data);
+      return await response.json();
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/user"], data);

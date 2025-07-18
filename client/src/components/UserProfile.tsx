@@ -46,12 +46,13 @@ export default function UserProfile() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest({
-        url: "/api/auth/logout",
-        method: "POST",
-      });
+      await apiRequest("POST", "/api/auth/logout");
     },
     onSuccess: () => {
+      // Clear the authentication query data
+      queryClient.setQueryData(["/api/auth/user"], null);
+      // Invalidate and clear all queries
+      queryClient.invalidateQueries();
       queryClient.clear();
       toast({
         title: "Logged out",
@@ -60,20 +61,18 @@ export default function UserProfile() {
     },
     onError: (error: any) => {
       console.error("Logout error:", error);
-      // Even if logout fails, clear the cache
+      // Even if logout fails, clear the cache and set user to null
+      queryClient.setQueryData(["/api/auth/user"], null);
+      queryClient.invalidateQueries();
       queryClient.clear();
     },
   });
 
   const changePasswordMutation = useMutation({
     mutationFn: async (data: ChangePasswordData) => {
-      await apiRequest({
-        url: "/api/auth/change-password",
-        method: "POST",
-        data: {
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
-        },
+      await apiRequest("POST", "/api/auth/change-password", {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
       });
     },
     onSuccess: () => {
