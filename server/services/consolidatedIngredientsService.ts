@@ -3,11 +3,9 @@ import OpenAI from "openai";
 
 // Smart consolidation for purchasable units
 function consolidateAmounts(amount1: string, unit1: string, amount2: string, unit2: string): string {
-  console.log(`Consolidating: "${amount1}" ${unit1} + "${amount2}" ${unit2}`);
-  
   // Extract numeric values from amount strings, handling already concatenated amounts
   const extractNumber = (amount: string): number => {
-    // If amount already contains "+", it's a concatenated string - extract first number
+    // If amount already contains "+", it's a concatenated string - extract and sum all numbers
     if (amount.includes('+')) {
       const parts = amount.split('+');
       let total = 0;
@@ -25,14 +23,17 @@ function consolidateAmounts(amount1: string, unit1: string, amount2: string, uni
     return match ? parseFloat(match[0]) : 1;
   };
   
+  // Normalize units for comparison
+  const normalizeUnit = (unit: string): string => {
+    if (!unit) return '';
+    return unit.toLowerCase().trim();
+  };
+  
   // If units are the same or similar, try to add numeric values
-  if (unit1 === unit2 || 
-      (unit1 && unit2 && unit1.toLowerCase() === unit2.toLowerCase())) {
+  if (normalizeUnit(unit1) === normalizeUnit(unit2)) {
     const num1 = extractNumber(amount1);
     const num2 = extractNumber(amount2);
     const total = num1 + num2;
-    
-    console.log(`Consolidation result: ${num1} + ${num2} = ${total}`);
     
     // Return the consolidated amount with proper formatting
     if (total === Math.floor(total)) {
@@ -44,7 +45,6 @@ function consolidateAmounts(amount1: string, unit1: string, amount2: string, uni
   
   // For different units, keep them separate but clearly indicate
   if (amount1 && amount2) {
-    console.log(`Different units, keeping separate: ${amount1} + ${amount2}`);
     return `${amount1} + ${amount2}`;
   }
   
@@ -108,8 +108,8 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
           const existing = ingredientMap.get(key)!;
           // For purchasable units, we need smart consolidation
           existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
-          // Update unit to the most recent one if they're the same
-          if (ingredient.unit && (existing.unit === ingredient.unit || !existing.unit)) {
+          // Update unit to the most recent one if they're the same (case insensitive)
+          if (ingredient.unit && (existing.unit && existing.unit.toLowerCase() === ingredient.unit.toLowerCase() || !existing.unit)) {
             existing.unit = ingredient.unit;
           }
           if (!existing.usedInPlans.includes(mealPlan.name)) {
@@ -176,8 +176,8 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
             const existing = ingredientMap.get(key)!;
             // For purchasable units, we need smart consolidation
             existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
-            // Update unit to the most recent one if they're the same
-            if (ingredient.unit && (existing.unit === ingredient.unit || !existing.unit)) {
+            // Update unit to the most recent one if they're the same (case insensitive)
+            if (ingredient.unit && (existing.unit && existing.unit.toLowerCase() === ingredient.unit.toLowerCase() || !existing.unit)) {
               existing.unit = ingredient.unit;
             }
             if (!existing.usedInPlans.includes(mealPlan.name)) {
