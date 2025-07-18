@@ -249,8 +249,8 @@ export function ConsolidatedIngredientsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center">
               <ShoppingCart className="h-6 w-6 mr-2" />
@@ -269,7 +269,7 @@ export function ConsolidatedIngredientsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0">
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-green-600">
@@ -304,17 +304,17 @@ export function ConsolidatedIngredientsModal({
           </Card>
         </div>
 
-        <div className="flex-1 overflow-hidden space-y-6">
-          {/* Always show ingredients list */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                Consolidated Ingredients List
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-64">
+        <ScrollArea className="flex-1 overflow-y-auto">
+          <div className="space-y-6 pr-4">
+            {/* Always show ingredients list */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  Consolidated Ingredients List
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-3">
                   {consolidatedData.ingredients.map((ingredient, index) => (
                     <div key={index} className="flex items-center justify-between border-b pb-2">
@@ -337,9 +337,8 @@ export function ConsolidatedIngredientsModal({
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           {/* Purchase options */}
           {currentView === 'options' && (
@@ -438,7 +437,8 @@ export function ConsolidatedIngredientsModal({
               />
             </div>
           )}
-        </div>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
