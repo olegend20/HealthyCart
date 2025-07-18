@@ -42,6 +42,10 @@ export const getQueryFn: <T>(options: {
         url = `${url}/${queryKey[1]}`;
       } else if (url === "/api/recipes") {
         url = `${url}/${queryKey[1]}`;
+      } else if (url === "/api/consolidated-ingredients/meal-plan") {
+        url = `${url}/${queryKey[1]}`;
+      } else if (url === "/api/consolidated-ingredients/group") {
+        url = `${url}/${queryKey[1]}`;
       }
     }
     

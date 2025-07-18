@@ -65,24 +65,14 @@ export function ConsolidatedIngredientsModal({
     queryKey: mealPlanId 
       ? ['/api/consolidated-ingredients/meal-plan', mealPlanId] 
       : ['/api/consolidated-ingredients/group', groupId],
-    queryFn: () => {
-      if (mealPlanId) {
-        return apiRequest(`/api/consolidated-ingredients/meal-plan/${mealPlanId}`);
-      } else if (groupId) {
-        return apiRequest(`/api/consolidated-ingredients/group/${groupId}`);
-      }
-      throw new Error('No meal plan or group ID provided');
-    },
     enabled: isOpen && (!!mealPlanId || !!groupId)
   });
 
   // Store organization mutation
   const organizeByStoreMutation = useMutation({
     mutationFn: async ({ ingredients, store }: { ingredients: ConsolidatedIngredient[], store: string }) => {
-      return apiRequest('/api/consolidated-ingredients/organize-by-store', {
-        method: 'POST',
-        body: { ingredients, store }
-      });
+      const response = await apiRequest('POST', '/api/consolidated-ingredients/organize-by-store', { ingredients, store });
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -102,10 +92,8 @@ export function ConsolidatedIngredientsModal({
   // Instacart format mutation
   const instacartFormatMutation = useMutation({
     mutationFn: async (ingredients: ConsolidatedIngredient[]) => {
-      return apiRequest('/api/consolidated-ingredients/instacart-format', {
-        method: 'POST',
-        body: { ingredients }
-      });
+      const response = await apiRequest('POST', '/api/consolidated-ingredients/instacart-format', { ingredients });
+      return await response.json();
     },
     onSuccess: () => {
       toast({
