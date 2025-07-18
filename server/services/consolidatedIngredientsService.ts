@@ -3,16 +3,28 @@ import OpenAI from "openai";
 
 // Smart consolidation for purchasable units
 function consolidateAmounts(amount1: string, unit1: string, amount2: string, unit2: string): string {
-  // If units are the same, try to add numeric values
-  if (unit1 === unit2) {
-    const num1 = parseFloat(amount1);
-    const num2 = parseFloat(amount2);
-    if (!isNaN(num1) && !isNaN(num2)) {
-      return (num1 + num2).toString();
+  // Extract numeric values from amount strings
+  const extractNumber = (amount: string): number => {
+    const match = amount.match(/^\d+(\.\d+)?/);
+    return match ? parseFloat(match[0]) : 1;
+  };
+  
+  // If units are the same or similar, try to add numeric values
+  if (unit1 === unit2 || 
+      (unit1 && unit2 && unit1.toLowerCase() === unit2.toLowerCase())) {
+    const num1 = extractNumber(amount1);
+    const num2 = extractNumber(amount2);
+    const total = num1 + num2;
+    
+    // Return the consolidated amount with proper formatting
+    if (total === Math.floor(total)) {
+      return total.toString();
+    } else {
+      return total.toFixed(1);
     }
   }
   
-  // For different units or non-numeric amounts, concatenate with a separator
+  // For different units, keep them separate but clearly indicate
   if (amount1 && amount2) {
     return `${amount1} + ${amount2}`;
   }
@@ -77,6 +89,10 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
           const existing = ingredientMap.get(key)!;
           // For purchasable units, we need smart consolidation
           existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
+          // Update unit to the most recent one if they're the same
+          if (ingredient.unit && (existing.unit === ingredient.unit || !existing.unit)) {
+            existing.unit = ingredient.unit;
+          }
           if (!existing.usedInPlans.includes(mealPlan.name)) {
             existing.usedInPlans.push(mealPlan.name);
           }
@@ -141,6 +157,10 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
             const existing = ingredientMap.get(key)!;
             // For purchasable units, we need smart consolidation
             existing.totalAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
+            // Update unit to the most recent one if they're the same
+            if (ingredient.unit && (existing.unit === ingredient.unit || !existing.unit)) {
+              existing.unit = ingredient.unit;
+            }
             if (!existing.usedInPlans.includes(mealPlan.name)) {
               existing.usedInPlans.push(mealPlan.name);
             }

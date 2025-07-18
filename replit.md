@@ -112,6 +112,16 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 18, 2025. Enhanced Ingredient Consolidation Algorithm and Fixed Purchasable Units System
+  - Fixed ingredient consolidation bug where amounts were being concatenated instead of added (e.g., "1 + 3 + 2 + 2 + 2 + 2 tablespoon olive oil")
+  - Enhanced consolidateAmounts function to properly extract numeric values from ingredient amounts
+  - Added intelligent unit matching for case-insensitive comparisons
+  - Improved numeric consolidation with proper decimal handling
+  - Updated both single meal plan and group consolidation logic to use enhanced algorithm
+  - System now correctly shows "12 tablespoon olive oil" instead of "1 + 3 + 2 + 2 + 2 + 2 tablespoon olive oil"
+  - Fixed PrintableShoppingList component to work without pricing information
+  - Enhanced ingredient consolidation to maintain consistent units across combined ingredients
+
 - July 18, 2025. Removed Pricing/Budget Features from Meal Planning System
   - Removed budget input field from meal plan creation form for cleaner interface
   - Eliminated pricing information from consolidated ingredients modal and backend services
