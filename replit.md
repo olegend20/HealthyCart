@@ -112,6 +112,18 @@ The application uses a relational database with the following key entities:
 
 ## Changelog
 
+- July 18, 2025. Redesigned Meal Planning Architecture - ChatGPT Generates Complete Meal Plans with Instacart-Ready Ingredients
+  - Completely redesigned multi-meal plan generation to have OpenAI/ChatGPT generate everything in proper format from the start
+  - Enhanced OpenAI prompts to generate ingredients already in Instacart-friendly format (lbs, packages, bottles, bags)
+  - Added specific requirements for grocery shopping units instead of cooking measurements in consolidated shopping lists
+  - Updated multi-meal plan generator to use OpenAI's consolidated shopping list directly, eliminating unit conversions
+  - OpenAI now generates complete meal plans with recipes, detailed instructions, AND optimized shopping lists in grocery format
+  - System flow: User creates meal plan → OpenAI generates meals with recipes AND Instacart-ready shopping list → No conversion needed
+  - Enhanced prompt examples with proper grocery units: "2 lbs chicken breast", "1 5 lb bag flour", "1 16.9 fl oz bottle olive oil"
+  - Removed complex unit conversion logic in favor of intelligent AI-generated shopping lists
+  - ChatGPT handles ingredient optimization, consolidation, and grocery shopping format generation in single request
+  - Architecture now follows: Requirements → OpenAI → Complete meal plans + recipes + shopping list (all ready for use)
+
 - July 18, 2025. Enhanced Ingredient Consolidation Algorithm and Fixed Purchasable Units System
   - Fixed ingredient consolidation bug where amounts were being concatenated instead of added (e.g., "1 + 3 + 2 + 2 + 2 + 2 tablespoon olive oil")
   - Enhanced consolidateAmounts function to properly extract numeric values from ingredient amounts

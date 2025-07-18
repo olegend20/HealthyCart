@@ -187,14 +187,6 @@ export async function generateEnhancedMultiMealPlan(request: MultiMealPlanReques
 
     // Process and store the generated meal plans
     const createdMealPlans = [];
-    const allGroceryItems = new Map<string, {
-      totalAmount: number;
-      unit: string;
-      category: string;
-      estimatedPrice: number;
-      aisle?: string;
-      usedInPlans: string[];
-    }>();
 
     for (const [index, planData] of generatedMultiPlan.mealPlans.entries()) {
       const planConfig = request.mealPlans[index];
@@ -260,24 +252,6 @@ export async function generateEnhancedMultiMealPlan(request: MultiMealPlanReques
                 optional: false
               };
               await storage.createRecipeIngredient(ingredientData);
-
-              // Track ingredient for consolidated grocery list
-              const key = ingredient.name.toLowerCase();
-              if (allGroceryItems.has(key)) {
-                const existing = allGroceryItems.get(key)!;
-                existing.totalAmount += ingredient.amount;
-                if (!existing.usedInPlans.includes(planData.name)) {
-                  existing.usedInPlans.push(planData.name);
-                }
-              } else {
-                allGroceryItems.set(key, {
-                  totalAmount: ingredient.amount,
-                  unit: ingredient.unit,
-                  category: ingredient.category || "other",
-                  estimatedPrice: Math.random() * 5 + 1, // Will be replaced with optimization data
-                  usedInPlans: [planData.name]
-                });
-              }
             }
           }
 

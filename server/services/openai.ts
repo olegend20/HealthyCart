@@ -459,6 +459,11 @@ CRITICAL REQUIREMENTS:
 8. **SHARED STAPLES**: Use common ingredients like onions, garlic, rice, pasta across plans
 9. **BULK BUYING**: Suggest ingredients that benefit from larger quantities
 10. **WASTE REDUCTION**: Ensure perishables are used efficiently across all plans
+11. **INSTACART-READY INGREDIENTS**: In the consolidatedShoppingList, provide ingredients in grocery shopping format that can be directly ordered from Instacart:
+    - Use grocery package sizes: "2 lbs", "1 gallon", "16 oz package", "5 lb bag"
+    - Convert cooking measurements to shopping units: cups of flour → lb bags, tablespoons of oil → fl oz bottles
+    - Use standard grocery terminology: "package", "bag", "bottle", "carton", "bunch", "head", "loaf"
+    - Examples: "2 cups flour" → "1 5 lb bag all-purpose flour", "6 tablespoons olive oil" → "1 16.9 fl oz bottle olive oil"
 
 Please respond with a complete multi-meal plan in JSON format with this exact structure:
 {
@@ -514,11 +519,43 @@ Please respond with a complete multi-meal plan in JSON format with this exact st
     "consolidatedShoppingList": [
       {
         "name": "chicken breast",
-        "totalAmount": 4,
+        "totalAmount": 2,
         "unit": "lbs",
         "category": "protein",
         "estimatedPrice": 18.00,
-        "aisle": "Meat"
+        "aisle": "Meat & Seafood"
+      },
+      {
+        "name": "all-purpose flour",
+        "totalAmount": 1,
+        "unit": "5 lb bag",
+        "category": "baking",
+        "estimatedPrice": 3.99,
+        "aisle": "Baking"
+      },
+      {
+        "name": "olive oil",
+        "totalAmount": 1,
+        "unit": "16.9 fl oz bottle",
+        "category": "oils",
+        "estimatedPrice": 4.99,
+        "aisle": "Condiments & Sauces"
+      },
+      {
+        "name": "milk",
+        "totalAmount": 1,
+        "unit": "gallon",
+        "category": "dairy",
+        "estimatedPrice": 3.49,
+        "aisle": "Dairy"
+      },
+      {
+        "name": "yellow onions",
+        "totalAmount": 1,
+        "unit": "3 lb bag",
+        "category": "produce",
+        "estimatedPrice": 2.99,
+        "aisle": "Produce"
       }
     ],
     "totalSavings": 25.00,
