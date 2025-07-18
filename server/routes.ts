@@ -1,7 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated as replitIsAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./authMiddleware";
+import { authService } from "./auth";
 import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGeneratorFixed";
 import { generateMultiMealPlan, type MultiMealPlanRequest } from "./services/multiMealPlanGenerator";
 import { generateEnhancedMultiMealPlan, type MultiMealPlanRequest as EnhancedMultiMealPlanRequest } from "./services/enhancedMultiMealPlanGenerator";
@@ -19,7 +21,9 @@ import {
   insertHouseholdMemberSchema, 
   insertCookingEquipmentSchema, 
   insertMealPlanSchema,
-  insertNutritionGoalSchema
+  insertNutritionGoalSchema,
+  registerSchema,
+  loginSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -29,7 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -38,10 +42,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email/password authentication routes
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const user = await authService.register(req.body);
+      
+      // Set session
+      (req.session as any).userId = user.id;
+      
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Registration failed" 
+      });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const user = await authService.login(req.body);
+      
+      // Set session
+      (req.session as any).userId = user.id;
+      
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Login failed" 
+      });
+    }
+  });
+
+  app.post('/api/auth/logout', async (req, res) => {
+    try {
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) {
+            console.error("Session destroy error:", err);
+            return res.status(500).json({ message: "Logout failed" });
+          }
+          res.clearCookie('connect.sid');
+          res.json({ message: "Logged out successfully" });
+        });
+      } else {
+        res.json({ message: "No active session" });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "Logout failed" });
+    }
+  });
+
+  app.post('/api/auth/change-password', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Current password and new password are required" });
+      }
+      
+      await authService.changePassword(userId, currentPassword, newPassword);
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Password change failed" 
+      });
+    }
+  });
+
   // Household member routes
   app.get('/api/household-members', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const members = await storage.getHouseholdMembers(userId);
       res.json(members);
     } catch (error) {
@@ -52,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/household-members', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const memberData = insertHouseholdMemberSchema.parse({
         ...req.body,
         userId
@@ -92,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cooking equipment routes
   app.get('/api/cooking-equipment', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const equipment = await storage.getCookingEquipment(userId);
       res.json(equipment);
     } catch (error) {
@@ -103,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/cooking-equipment', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const equipmentData = insertCookingEquipmentSchema.parse({
         ...req.body,
         userId
@@ -131,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Meal plan group routes  
   app.get('/api/meal-plan-groups', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const groups = await storage.getMealPlanGroups(userId);
       
       // Get associated meal plans for each group
@@ -223,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Meal plan routes
   app.get('/api/meal-plans', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const mealPlans = await storage.getMealPlans(userId);
       res.json(mealPlans);
     } catch (error) {
@@ -234,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/meal-plans/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const id = parseInt(req.params.id);
       const mealPlan = await storage.getMealPlan(id, userId);
       if (!mealPlan) {
@@ -381,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/meal-plans/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const id = parseInt(req.params.id);
       const mealPlan = await storage.getMealPlan(id, userId);
       
@@ -401,7 +495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/meal-plans/generate', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const { name, duration, budget, goals, mealTypes, startDate, selectedMembers } = req.body;
       
       const request: MealPlanGenerationRequest = {
@@ -432,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/meal-plans/generate-multi', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const { groupName, mealPlans } = req.body;
       
       console.log("Received enhanced multi-meal plan generation request:", { groupName, mealPlansCount: mealPlans.length });
@@ -467,7 +561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get meal plan members
   app.get('/api/meal-plans/:id/members', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const mealPlanId = parseInt(req.params.id);
       
       // Verify user owns this meal plan
@@ -570,7 +664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/meals/:mealId/replace-recipe', isAuthenticated, async (req: any, res) => {
     try {
       const mealId = parseInt(req.params.mealId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       if (isNaN(mealId)) {
         return res.status(400).json({ message: "Invalid meal ID" });
@@ -646,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Nutrition goals routes
   app.get('/api/nutrition-goals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const goals = await storage.getNutritionGoals(userId);
       res.json(goals);
     } catch (error) {
@@ -657,7 +751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/nutrition-goals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const goalData = insertNutritionGoalSchema.parse({
         ...req.body,
         userId
@@ -697,7 +791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Consolidated ingredients routes
   app.get('/api/consolidated-ingredients/meal-plan/:mealPlanId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const mealPlanId = parseInt(req.params.mealPlanId);
       
       if (isNaN(mealPlanId)) {
@@ -716,7 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/consolidated-ingredients/group/:groupId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const groupId = parseInt(req.params.groupId);
       
       if (isNaN(groupId)) {

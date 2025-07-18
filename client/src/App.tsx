@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
-import Landing from "@/pages/Landing";
+import AuthForm from "@/components/AuthForm";
 import CleanHome from "@/pages/CleanHome";
 import HouseholdSetup from "@/pages/HouseholdSetup";
 import MealPlanGenerator from "@/pages/MealPlanGenerator";
@@ -23,7 +23,7 @@ function Router() {
   return (
     <Switch>
       {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <Route path="/" component={AuthForm} />
       ) : (
         <>
           <Route path="/" component={CleanHome} />

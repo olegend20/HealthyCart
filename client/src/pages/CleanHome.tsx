@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Utensils, Users, Calendar, DollarSign, Leaf, Bell, Plus, X } from "lucide-react";
 import WorkingMealPlanForm from "@/components/WorkingMealPlanForm";
+import UserProfile from "@/components/UserProfile";
 
 interface User {
   id: string;
@@ -161,11 +162,7 @@ export default function CleanHome() {
               <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
               </Button>
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {user.firstName?.[0] || user.email?.[0] || "U"}
-                </span>
-              </div>
+              <UserProfile />
             </div>
           </div>
         </div>
