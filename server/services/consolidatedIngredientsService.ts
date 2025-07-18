@@ -163,20 +163,25 @@ export async function getConsolidatedIngredientsForMealPlan(mealPlanId: number, 
         if (ingredientMap.has(key)) {
           const existing = ingredientMap.get(key)!;
           // For purchasable units, we need smart consolidation
-          const newAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
-          existing.totalAmount = newAmount;
-          // Update unit to the most recent one if they're the same (case insensitive)
-          if (ingredient.unit && (existing.unit && existing.unit.toLowerCase() === ingredient.unit.toLowerCase() || !existing.unit)) {
-            existing.unit = ingredient.unit;
-          }
+          const consolidatedResult = consolidateAmountsWithUnitConversion(
+            existing.totalAmount, 
+            existing.unit, 
+            amount, 
+            ingredient.unit || "",
+            ingredient.name
+          );
+          existing.totalAmount = consolidatedResult.amount;
+          existing.unit = consolidatedResult.unit;
           if (!existing.usedInPlans.includes(mealPlan.name)) {
             existing.usedInPlans.push(mealPlan.name);
           }
         } else {
+          // Convert initial ingredient to grocery format
+          const convertedResult = convertToGroceryFormatWithAmount(ingredient.name, amount, ingredient.unit || "");
           ingredientMap.set(key, {
             name: ingredient.name,
-            totalAmount: amount,
-            unit: ingredient.unit || "",
+            totalAmount: convertedResult.amount,
+            unit: convertedResult.unit,
             category: ingredient.category || "other",
             usedInPlans: [mealPlan.name],
             aisle: undefined
@@ -231,21 +236,26 @@ export async function getConsolidatedIngredientsForGroup(groupId: number, userId
 
           if (ingredientMap.has(key)) {
             const existing = ingredientMap.get(key)!;
-            // For purchasable units, we need smart consolidation
-            const newAmount = consolidateAmounts(existing.totalAmount, existing.unit, amount, ingredient.unit || "");
-            existing.totalAmount = newAmount;
-            // Update unit to the most recent one if they're the same (case insensitive)
-            if (ingredient.unit && (existing.unit && existing.unit.toLowerCase() === ingredient.unit.toLowerCase() || !existing.unit)) {
-              existing.unit = ingredient.unit;
-            }
+            // For purchasable units, we need smart consolidation with unit conversion
+            const consolidatedResult = consolidateAmountsWithUnitConversion(
+              existing.totalAmount, 
+              existing.unit, 
+              amount, 
+              ingredient.unit || "",
+              ingredient.name
+            );
+            existing.totalAmount = consolidatedResult.amount;
+            existing.unit = consolidatedResult.unit;
             if (!existing.usedInPlans.includes(mealPlan.name)) {
               existing.usedInPlans.push(mealPlan.name);
             }
           } else {
+            // Convert initial ingredient to grocery format
+            const convertedResult = convertToGroceryFormatWithAmount(ingredient.name, amount, ingredient.unit || "");
             ingredientMap.set(key, {
               name: ingredient.name,
-              totalAmount: amount,
-              unit: ingredient.unit || "",
+              totalAmount: convertedResult.amount,
+              unit: convertedResult.unit,
               category: ingredient.category || "other",
               usedInPlans: [mealPlan.name],
               aisle: undefined
@@ -480,6 +490,140 @@ Prefer organic options when available.`;
     
     return fallbackFormat;
   }
+}
+
+// Helper function to convert cooking measurements to grocery shopping format with separate amount and unit
+function convertToGroceryFormatWithAmount(name: string, amount: string | number, unit: string): { amount: string; unit: string } {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) || 1 : amount;
+  const lowerName = name.toLowerCase();
+  const lowerUnit = unit.toLowerCase();
+
+  // Handle specific ingredient conversions that require different package units
+  if (lowerName.includes('flour')) {
+    if (lowerUnit.includes('cup')) {
+      const cups = numAmount;
+      // 1 cup flour ≈ 4.5 oz, 5 lb bag = 80 oz
+      if (cups <= 8) return { amount: "1", unit: "5 lb bag" };
+      return { amount: "1", unit: "10 lb bag" };
+    }
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound')) {
+      if (numAmount <= 5) return { amount: "1", unit: "5 lb bag" };
+      return { amount: "1", unit: "10 lb bag" };
+    }
+  }
+
+  if (lowerName.includes('sugar')) {
+    if (lowerUnit.includes('cup')) {
+      return { amount: "1", unit: "4 lb bag" };
+    }
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound')) {
+      if (numAmount <= 4) return { amount: "1", unit: "4 lb bag" };
+      return { amount: "1", unit: "10 lb bag" };
+    }
+  }
+
+  if (lowerName.includes('milk')) {
+    if (lowerUnit.includes('cup')) {
+      const cups = numAmount;
+      if (cups <= 4) return { amount: "1", unit: "quart" };
+      if (cups <= 8) return { amount: "1", unit: "half-gallon" };
+      return { amount: "1", unit: "gallon" };
+    }
+  }
+
+  if (lowerName.includes('oil') && (lowerUnit.includes('tbsp') || lowerUnit.includes('tablespoon'))) {
+    return { amount: "1", unit: "bottle (16.9 fl oz)" };
+  }
+
+  if (lowerName.includes('cheese')) {
+    if (lowerUnit.includes('cup') || lowerUnit.includes('oz') || lowerUnit.includes('ounce')) {
+      const oz = lowerUnit.includes('cup') ? numAmount * 4 : numAmount; // roughly 1 cup = 4 oz for shredded cheese
+      if (oz <= 8) return { amount: "1", unit: "8 oz package" };
+      return { amount: "1", unit: "16 oz package" };
+    }
+  }
+
+  if (lowerName.includes('pasta') || lowerName.includes('noodle')) {
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound') || lowerUnit.includes('oz')) {
+      return { amount: "1", unit: "1 lb box" };
+    }
+  }
+
+  if (lowerName.includes('rice')) {
+    if (lowerUnit.includes('cup')) {
+      const cups = numAmount;
+      if (cups <= 4) return { amount: "1", unit: "2 lb bag" };
+      return { amount: "1", unit: "5 lb bag" };
+    }
+  }
+
+  // Handle produce (keep as pieces or convert to pounds)
+  if (lowerName.includes('onion') || lowerName.includes('bell pepper') || lowerName.includes('tomato')) {
+    if (lowerUnit.includes('whole') || lowerUnit === '' || lowerUnit === 'each') {
+      const count = Math.ceil(numAmount);
+      return { amount: count.toString(), unit: "each" };
+    }
+  }
+
+  // Handle meat/protein - keep as pounds
+  if (lowerName.includes('chicken') || lowerName.includes('beef') || lowerName.includes('pork') || 
+      lowerName.includes('fish') || lowerName.includes('salmon') || lowerName.includes('turkey')) {
+    if (lowerUnit.includes('lb') || lowerUnit.includes('pound')) {
+      return { amount: Math.ceil(numAmount).toString(), unit: "lbs" };
+    }
+    if (lowerUnit.includes('oz') || lowerUnit.includes('ounce')) {
+      const pounds = Math.ceil(numAmount / 16 * 10) / 10; // round up to nearest 0.1 lb
+      return { amount: pounds.toString(), unit: "lbs" };
+    }
+  }
+
+  // Handle canned goods
+  if (lowerName.includes('tomato') && (lowerName.includes('can') || lowerName.includes('diced') || lowerName.includes('crushed'))) {
+    const cans = Math.ceil(numAmount);
+    return { amount: cans.toString(), unit: "cans (14.5 oz)" };
+  }
+
+  // Default: try to keep reasonable format
+  if (lowerUnit.includes('cup') || lowerUnit.includes('tbsp') || lowerUnit.includes('tsp')) {
+    // For small amounts in cooking units, suggest package sizes
+    return { amount: "1", unit: "package" };
+  }
+
+  // If amount and unit are already grocery-friendly, keep them
+  if (lowerUnit.includes('lb') || lowerUnit.includes('oz') || lowerUnit === '' || lowerUnit === 'each') {
+    const cleanAmount = Math.ceil(numAmount);
+    return { amount: cleanAmount.toString(), unit: unit || "each" };
+  }
+
+  // Fallback
+  return { amount: Math.ceil(numAmount).toString(), unit: unit || "each" };
+}
+
+// Helper function to consolidate amounts with unit conversion
+function consolidateAmountsWithUnitConversion(
+  amount1: string | number, 
+  unit1: string, 
+  amount2: string | number, 
+  unit2: string, 
+  ingredientName: string
+): { amount: string; unit: string } {
+  // Convert the new ingredient to grocery format
+  const converted2 = convertToGroceryFormatWithAmount(ingredientName, amount2, unit2);
+  
+  // If the existing ingredient has the same unit (after conversion), combine quantities
+  if (unit1 === converted2.unit) {
+    const num1 = typeof amount1 === 'string' ? parseFloat(amount1) || 1 : amount1;
+    const num2 = parseFloat(converted2.amount) || 1;
+    const total = num1 + num2;
+    
+    return { 
+      amount: total === Math.floor(total) ? total.toString() : total.toFixed(1), 
+      unit: unit1 
+    };
+  }
+  
+  // If units are different, use the new converted format
+  return converted2;
 }
 
 // Helper function to convert cooking measurements to grocery shopping format
