@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, Calendar, Clock, Users, DollarSign, CheckCircle, X, ThumbsDown, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Users, DollarSign, CheckCircle, X, ThumbsDown, Loader2, ShoppingCart } from "lucide-react";
+import { ConsolidatedIngredientsModal } from "@/components/ConsolidatedIngredientsModal";
 
 interface MealPlan {
   id: number;
@@ -79,6 +80,7 @@ export default function MealPlanDetails() {
   const [recipeIngredients, setRecipeIngredients] = useState<{ [key: number]: RecipeIngredient[] }>({});
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [replacingRecipe, setReplacingRecipe] = useState<number | null>(null);
+  const [showConsolidatedIngredients, setShowConsolidatedIngredients] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -268,7 +270,7 @@ export default function MealPlanDetails() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Meal Plan Overview */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -300,6 +302,18 @@ export default function MealPlanDetails() {
                 <p className="font-medium">{meals.length} planned</p>
               </div>
             </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="mt-6 flex items-center space-x-4">
+            <button
+              onClick={() => setShowConsolidatedIngredients(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              <span>View Consolidated Ingredients</span>
+            </button>
+          </div>
           </div>
           
           {/* Goals */}
@@ -514,7 +528,6 @@ export default function MealPlanDetails() {
             )}
           </div>
         </div>
-      </main>
 
       {/* Recipe Detail Modal */}
       {selectedRecipe && (
@@ -695,6 +708,14 @@ export default function MealPlanDetails() {
           </div>
         </div>
       )}
+
+      {/* Consolidated Ingredients Modal */}
+      <ConsolidatedIngredientsModal
+        isOpen={showConsolidatedIngredients}
+        onClose={() => setShowConsolidatedIngredients(false)}
+        mealPlanId={mealPlan?.id}
+        title={mealPlan ? `${mealPlan.name} - Consolidated Ingredients` : undefined}
+      />
     </div>
   );
 }

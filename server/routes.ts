@@ -8,6 +8,14 @@ import { generateEnhancedMultiMealPlan, type MultiMealPlanRequest as EnhancedMul
 import { generateCustomizedRecipe, type RecipeCustomizationRequest } from "./services/recipeCustomizer";
 import { replaceRecipeWithAI, type RecipeReplacementRequest } from "./services/recipeReplacement";
 import { 
+  getConsolidatedIngredientsForMealPlan,
+  getConsolidatedIngredientsForGroup,
+  organizeIngredientsByStore,
+  generateInstacartFormat,
+  type StoreOrganizationRequest,
+  type InstacartFormatRequest
+} from "./services/consolidatedIngredientsService";
+import { 
   insertHouseholdMemberSchema, 
   insertCookingEquipmentSchema, 
   insertMealPlanSchema,
@@ -683,6 +691,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting nutrition goal:", error);
       res.status(500).json({ message: "Failed to delete nutrition goal" });
+    }
+  });
+
+  // Consolidated ingredients routes
+  app.get('/api/consolidated-ingredients/meal-plan/:mealPlanId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const mealPlanId = parseInt(req.params.mealPlanId);
+      
+      if (isNaN(mealPlanId)) {
+        return res.status(400).json({ message: "Invalid meal plan ID" });
+      }
+
+      const consolidatedIngredients = await getConsolidatedIngredientsForMealPlan(mealPlanId, userId);
+      res.json(consolidatedIngredients);
+    } catch (error) {
+      console.error("Error getting consolidated ingredients for meal plan:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to get consolidated ingredients" 
+      });
+    }
+  });
+
+  app.get('/api/consolidated-ingredients/group/:groupId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const groupId = parseInt(req.params.groupId);
+      
+      if (isNaN(groupId)) {
+        return res.status(400).json({ message: "Invalid group ID" });
+      }
+
+      const consolidatedIngredients = await getConsolidatedIngredientsForGroup(groupId, userId);
+      res.json(consolidatedIngredients);
+    } catch (error) {
+      console.error("Error getting consolidated ingredients for group:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to get consolidated ingredients" 
+      });
+    }
+  });
+
+  app.post('/api/consolidated-ingredients/organize-by-store', isAuthenticated, async (req: any, res) => {
+    try {
+      const request: StoreOrganizationRequest = req.body;
+      
+      if (!request.ingredients || !request.store) {
+        return res.status(400).json({ message: "Missing ingredients or store information" });
+      }
+
+      const organizedIngredients = await organizeIngredientsByStore(request);
+      res.json(organizedIngredients);
+    } catch (error) {
+      console.error("Error organizing ingredients by store:", error);
+      res.status(500).json({ message: "Failed to organize ingredients by store" });
+    }
+  });
+
+  app.post('/api/consolidated-ingredients/instacart-format', isAuthenticated, async (req: any, res) => {
+    try {
+      const request: InstacartFormatRequest = req.body;
+      
+      if (!request.ingredients) {
+        return res.status(400).json({ message: "Missing ingredients information" });
+      }
+
+      const instacartFormat = await generateInstacartFormat(request);
+      res.json({ format: instacartFormat });
+    } catch (error) {
+      console.error("Error generating Instacart format:", error);
+      res.status(500).json({ message: "Failed to generate Instacart format" });
     }
   });
 

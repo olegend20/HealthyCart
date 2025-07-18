@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Clock, Users, DollarSign, ShoppingCart, Target, ChefHat } from "lucide-react";
+import { ConsolidatedIngredientsModal } from "@/components/ConsolidatedIngredientsModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ interface ConsolidatedGroceryList {
 export default function MealPlanGroupDetails() {
   const { groupId } = useParams<{ groupId: string }>();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [showConsolidatedIngredients, setShowConsolidatedIngredients] = useState(false);
 
   const { data: mealPlanGroup, isLoading: groupLoading } = useQuery({
     queryKey: [`/api/meal-plan-groups/${groupId}`],
@@ -172,6 +174,17 @@ export default function MealPlanGroupDetails() {
                 <div className="text-2xl font-bold text-purple-600">${totalCost.toFixed(2)}</div>
                 <div className="text-sm text-gray-600">Total Cost</div>
               </div>
+            </div>
+            
+            {/* Action Button */}
+            <div className="mt-6">
+              <button
+                onClick={() => setShowConsolidatedIngredients(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                <span>View Consolidated Ingredients</span>
+              </button>
             </div>
           </div>
         </div>
@@ -333,6 +346,14 @@ export default function MealPlanGroupDetails() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Consolidated Ingredients Modal */}
+      <ConsolidatedIngredientsModal
+        isOpen={showConsolidatedIngredients}
+        onClose={() => setShowConsolidatedIngredients(false)}
+        groupId={parseInt(groupId || '0')}
+        title={mealPlanGroup ? `${mealPlanGroup.name} - Consolidated Ingredients` : undefined}
+      />
     </div>
   );
 }
