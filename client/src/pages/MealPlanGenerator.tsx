@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, CalendarIcon, Bot, Utensils, Users, DollarSign, Target } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, CalendarIcon, Bot, Utensils, Users, DollarSign, Target, ChefHat } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -19,6 +20,9 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import RecipeSelectionModal from "@/components/RecipeSelectionModal";
+import RecipeAssignmentGrid from "@/components/RecipeAssignmentGrid";
+import { SelectedRecipe } from "@/types/recipe";
 
 export default function MealPlanGenerator() {
   const { user } = useAuth();
@@ -32,14 +36,26 @@ export default function MealPlanGenerator() {
     mealTypes: ['dinner'] as string[]
   });
 
-  const { data: householdMembers, isLoading: membersLoading } = useQuery({
+  // Recipe selection states
+  const [includeExistingRecipes, setIncludeExistingRecipes] = useState(false);
+  const [showRecipeSelection, setShowRecipeSelection] = useState(false);
+  const [showRecipeAssignment, setShowRecipeAssignment] = useState(false);
+  const [selectedRecipes, setSelectedRecipes] = useState<SelectedRecipe[]>([]);
+  const [currentStep, setCurrentStep] = useState<'form' | 'recipe-selection' | 'recipe-assignment'>('form');
+
+  const { data: householdMembers = [], isLoading: membersLoading } = useQuery<any[]>({
     queryKey: ["/api/household-members"],
     enabled: !!user,
   });
 
-  const { data: cookingEquipment, isLoading: equipmentLoading } = useQuery({
+  const { data: cookingEquipment = [], isLoading: equipmentLoading } = useQuery<any[]>({
     queryKey: ["/api/cooking-equipment"],
     enabled: !!user,
+  });
+
+  const { data: userRecipes = [], isLoading: recipesLoading } = useQuery<any[]>({
+    queryKey: ["/api/recipes"],
+    enabled: !!user && includeExistingRecipes,
   });
 
   const generateMealPlanMutation = useMutation({
@@ -97,13 +113,75 @@ export default function MealPlanGenerator() {
       return;
     }
 
+    // If including existing recipes, show recipe selection
+    if (includeExistingRecipes && userRecipes.length > 0) {
+      setCurrentStep('recipe-selection');
+      setShowRecipeSelection(true);
+      return;
+    }
+
+    // Otherwise proceed with regular generation
     const requestData = {
       name: formData.name,
       duration: formData.duration,
       budget: formData.budget ? parseFloat(formData.budget) : undefined,
       goals: formData.goals,
       mealTypes: formData.mealTypes,
-      startDate: formData.startDate.toISOString()
+      startDate: formData.startDate.toISOString(),
+      selectedRecipes: selectedRecipes.length > 0 ? selectedRecipes.flatMap(sr => 
+        sr.assignments.map(assignment => ({
+          recipeId: sr.recipeId,
+          date: assignment.date,
+          mealType: assignment.mealType,
+          servings: assignment.servings
+        }))
+      ) : undefined
+    };
+
+    generateMealPlanMutation.mutate(requestData);
+  };
+
+  const handleRecipeSelection = (recipes: SelectedRecipe[]) => {
+    setSelectedRecipes(recipes);
+    setShowRecipeSelection(false);
+    if (recipes.length > 0) {
+      setCurrentStep('recipe-assignment');
+      setShowRecipeAssignment(true);
+    } else {
+      setCurrentStep('form');
+    }
+  };
+
+  const handleRecipeAssignmentUpdate = (updatedRecipes: SelectedRecipe[]) => {
+    setSelectedRecipes(updatedRecipes);
+  };
+
+  const handleBackToRecipeSelection = () => {
+    setCurrentStep('recipe-selection');
+    setShowRecipeAssignment(false);
+    setShowRecipeSelection(true);
+  };
+
+  const handleContinueFromAssignment = () => {
+    setShowRecipeAssignment(false);
+    setCurrentStep('form');
+    
+    // Proceed with meal plan generation
+    const requestData = {
+      name: formData.name,
+      duration: formData.duration,
+      budget: formData.budget ? parseFloat(formData.budget) : undefined,
+      goals: formData.goals,
+      mealTypes: formData.mealTypes,
+      startDate: formData.startDate.toISOString(),
+      selectedRecipes: selectedRecipes.flatMap(sr => 
+        sr.assignments.map(assignment => ({
+          recipeId: sr.recipeId,
+          date: assignment.date,
+          mealType: assignment.mealType,
+          servings: assignment.servings
+        }))
+      )
     };
 
     generateMealPlanMutation.mutate(requestData);
@@ -150,14 +228,14 @@ export default function MealPlanGenerator() {
   ];
 
   const getDietaryInfo = () => {
-    if (!householdMembers) return { restrictions: [], allergies: [] };
+    if (!householdMembers || householdMembers.length === 0) return { restrictions: [], allergies: [] };
     
     const allRestrictions = householdMembers.flatMap((member: any) => member.dietaryRestrictions || []);
     const allAllergies = householdMembers.flatMap((member: any) => member.allergies || []);
     
     return {
-      restrictions: [...new Set(allRestrictions)],
-      allergies: [...new Set(allAllergies)]
+      restrictions: Array.from(new Set(allRestrictions)),
+      allergies: Array.from(new Set(allAllergies))
     };
   };
 
@@ -304,6 +382,52 @@ export default function MealPlanGenerator() {
                         </label>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Recipe Selection Toggle */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <ChefHat className="h-4 w-4" />
+                          <Label className="text-base font-medium">Include Existing Recipes</Label>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          Add recipes from your library to the meal plan
+                          {userRecipes.length > 0 && ` (${userRecipes.length} available)`}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={includeExistingRecipes}
+                        onCheckedChange={setIncludeExistingRecipes}
+                      />
+                    </div>
+
+                    {includeExistingRecipes && selectedRecipes.length > 0 && (
+                      <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-sm">
+                              {selectedRecipes.length} recipe{selectedRecipes.length !== 1 ? 's' : ''} selected
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {selectedRecipes.reduce((total, sr) => total + sr.assignments.length, 0)} meal{selectedRecipes.reduce((total, sr) => total + sr.assignments.length, 0) !== 1 ? 's' : ''} assigned
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCurrentStep('recipe-selection');
+                              setShowRecipeSelection(true);
+                            }}
+                          >
+                            Edit Selection
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -455,7 +579,35 @@ export default function MealPlanGenerator() {
             </Card>
           </div>
         </div>
+
+        {/* Recipe Assignment Grid */}
+        {currentStep === 'recipe-assignment' && showRecipeAssignment && (
+          <div className="mt-8">
+            <RecipeAssignmentGrid
+              selectedRecipes={selectedRecipes}
+              mealPlanDuration={formData.duration}
+              selectedMealTypes={formData.mealTypes}
+              startDate={formData.startDate}
+              onUpdateAssignments={handleRecipeAssignmentUpdate}
+              onBack={handleBackToRecipeSelection}
+              onContinue={handleContinueFromAssignment}
+            />
+          </div>
+        )}
       </main>
+
+      {/* Recipe Selection Modal */}
+      <RecipeSelectionModal
+        isOpen={showRecipeSelection}
+        onClose={() => {
+          setShowRecipeSelection(false);
+          setCurrentStep('form');
+        }}
+        onSelectRecipes={handleRecipeSelection}
+        mealPlanDuration={formData.duration}
+        selectedMealTypes={formData.mealTypes}
+        startDate={formData.startDate}
+      />
     </div>
   );
 }
