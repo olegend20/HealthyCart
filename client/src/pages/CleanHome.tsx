@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Utensils, Users, Calendar, DollarSign, Leaf, Bell, Plus, X } from "lucide-react";
-import WorkingMealPlanForm from "@/components/WorkingMealPlanForm";
+import MealPlanModal from "@/components/MealPlanModal";
 import UserProfile from "@/components/UserProfile";
 
 interface User {
@@ -34,7 +34,7 @@ export default function CleanHome() {
   const [loading, setLoading] = useState(true);
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
-  const [showMealPlanForm, setShowMealPlanForm] = useState(false);
+  const [showMealPlanModal, setShowMealPlanModal] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -198,12 +198,10 @@ export default function CleanHome() {
                 <div className="flex flex-wrap gap-3">
                   <Button 
                     className="bg-white text-primary font-semibold hover:bg-gray-100"
-                    asChild
+                    onClick={() => setShowMealPlanModal(true)}
                   >
-                    <Link href="/meal-plan-generator">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Meal Plan
-                    </Link>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Meal Plan
                   </Button>
                   <Button 
                     className="bg-white/10 text-white border border-white/20 hover:bg-white/20"
@@ -399,7 +397,7 @@ export default function CleanHome() {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start"
-                    onClick={() => setShowMealPlanForm(true)}
+                    onClick={() => setShowMealPlanModal(true)}
                   >
                     <Plus className="h-4 w-4 mr-3 text-primary" />
                     Generate AI Meal Plan
@@ -421,26 +419,11 @@ export default function CleanHome() {
         </div>
       </main>
 
-      {/* Meal Plan Form Modal */}
-      {showMealPlanForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Create Meal Plan</h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowMealPlanForm(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <WorkingMealPlanForm 
-              householdMembers={householdMembers}
-              onSuccess={() => {
-                setShowMealPlanForm(false);
-                window.location.reload();
-              }}
-            />
-          </div>
-        </div>
-      )}
+      {/* Meal Plan Modal */}
+      <MealPlanModal 
+        isOpen={showMealPlanModal}
+        onClose={() => setShowMealPlanModal(false)}
+      />
     </div>
   );
 }
