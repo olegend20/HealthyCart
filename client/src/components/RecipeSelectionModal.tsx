@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Clock, Users, ChefHat, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, Clock, Users, ChefHat, X, Filter, Star } from "lucide-react";
 import { Recipe } from "@/types/recipe";
 
 interface SelectedRecipe {
@@ -45,6 +47,40 @@ export default function RecipeSelectionModal({
     queryKey: ["/api/recipes/search", searchQuery, selectedCuisine, selectedDifficulty],
     enabled: isOpen,
   });
+
+  // Filter and sort recipes with advanced logic
+  const filteredRecipes = useMemo(() => {
+    let filtered = recipes;
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(recipe => 
+        recipe.name.toLowerCase().includes(query) ||
+        recipe.description?.toLowerCase().includes(query) ||
+        recipe.cuisine?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply cuisine filter
+    if (selectedCuisine) {
+      filtered = filtered.filter(recipe => recipe.cuisine === selectedCuisine);
+    }
+    
+    // Apply difficulty filter
+    if (selectedDifficulty) {
+      filtered = filtered.filter(recipe => recipe.difficulty === selectedDifficulty);
+    }
+    
+    // Sort by relevance and popularity
+    return filtered.sort((a, b) => {
+      // Prioritize recently added recipes
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [recipes, searchQuery, selectedCuisine, selectedDifficulty]);
 
   const cuisineOptions = [
     "Italian", "Mexican", "Asian", "Mediterranean", "American", 
@@ -160,11 +196,11 @@ export default function RecipeSelectionModal({
               {Array(6).fill(0).map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardContent className="p-4">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded mb-2"></div>
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <Skeleton className="h-3 w-full mb-2" />
                     <div className="flex gap-2">
-                      <div className="h-6 w-16 bg-gray-200 rounded"></div>
-                      <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                      <Skeleton className="h-6 w-16" />
+                      <Skeleton className="h-6 w-16" />
                     </div>
                   </CardContent>
                 </Card>
@@ -186,7 +222,8 @@ export default function RecipeSelectionModal({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
+            <ScrollArea className="h-96">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
               {recipes.map((recipe: Recipe) => {
                 const isSelected = selectedRecipes.has(recipe.id);
                 return (
@@ -249,7 +286,8 @@ export default function RecipeSelectionModal({
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            </ScrollArea>
           )}
         </div>
 

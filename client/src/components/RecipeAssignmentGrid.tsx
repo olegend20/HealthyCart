@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Clock, Users, ChefHat, Plus, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar, Clock, Users, ChefHat, Plus, X, Copy, AlertTriangle, CheckCircle } from "lucide-react";
 import { Recipe } from "@/types/recipe";
 import { format, addDays } from "date-fns";
 
@@ -47,6 +49,8 @@ export default function RecipeAssignmentGrid({
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{date: string, mealType: string} | null>(null);
   const [selectedRecipeForAssignment, setSelectedRecipeForAssignment] = useState<Recipe | null>(null);
+  const [bulkAssignMode, setBulkAssignMode] = useState(false);
+  const [selectedRecipeForBulk, setSelectedRecipeForBulk] = useState<Recipe | null>(null);
 
   // Generate date range
   const dates = Array.from({ length: mealPlanDuration }, (_, i) => 
@@ -149,6 +153,37 @@ export default function RecipeAssignmentGrid({
     return dates.length * selectedMealTypes.length;
   };
 
+  // Bulk assign recipe to multiple slots
+  const bulkAssignRecipe = (recipe: Recipe, mealType: string, servings: number = 4) => {
+    const updatedRecipes = selectedRecipes.map(selectedRecipe => {
+      if (selectedRecipe.recipeId === recipe.id) {
+        // Add assignments for all dates with this meal type
+        const newAssignments = dates.map(date => ({
+          date: format(date, 'yyyy-MM-dd'),
+          mealType,
+          servings
+        }));
+        return {
+          ...selectedRecipe,
+          assignments: [...selectedRecipe.assignments, ...newAssignments]
+        };
+      }
+      return selectedRecipe;
+    });
+    
+    onUpdateAssignments(updatedRecipes);
+    setBulkAssignMode(false);
+    setSelectedRecipeForBulk(null);
+  };
+
+  // Get completion status
+  const getCompletionStatus = () => {
+    const assigned = getTotalAssignments();
+    const total = getTotalSlots();
+    const percentage = total > 0 ? (assigned / total) * 100 : 0;
+    return { assigned, total, percentage };
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -168,6 +203,107 @@ export default function RecipeAssignmentGrid({
           </div>
         </div>
       </div>
+
+      {/* Bulk Assignment Controls */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Copy className="h-5 w-5 text-blue-600" />
+              <div>
+                <h4 className="font-medium text-blue-900">Bulk Assignment</h4>
+                <p className="text-sm text-blue-700">Assign one recipe to all days for a specific meal type</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setBulkAssignMode(!bulkAssignMode)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              {bulkAssignMode ? 'Cancel' : 'Bulk Assign'}
+            </Button>
+          </div>
+          
+          {bulkAssignMode && (
+            <div className="mt-4 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Select onValueChange={(value) => {
+                  const recipe = selectedRecipes.find(r => r.recipeId.toString() === value)?.recipe;
+                  setSelectedRecipeForBulk(recipe || null);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select recipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedRecipes.map(sr => (
+                      <SelectItem key={sr.recipeId} value={sr.recipeId.toString()}>
+                        {sr.recipe.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select onValueChange={(mealType) => {
+                  if (selectedRecipeForBulk && mealType) {
+                    bulkAssignRecipe(selectedRecipeForBulk, mealType);
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select meal type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedMealTypes.map(mealType => (
+                      <SelectItem key={mealType} value={mealType}>
+                        {getMealTypeLabel(mealType)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Button 
+                  variant="outline" 
+                  disabled={!selectedRecipeForBulk}
+                  onClick={() => selectedRecipeForBulk && bulkAssignRecipe(selectedRecipeForBulk, selectedMealTypes[0])}
+                >
+                  Assign All
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Progress and Validation */}
+      {(() => {
+        const { assigned, total, percentage } = getCompletionStatus();
+        return (
+          <TooltipProvider>
+            <Alert className={percentage === 100 ? "border-green-200 bg-green-50" : percentage > 0 ? "border-amber-200 bg-amber-50" : "border-gray-200"}>
+              <div className="flex items-center space-x-2">
+                {percentage === 100 ? (
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                )}
+                <AlertDescription className="flex-1">
+                  {percentage === 100 ? (
+                    <span className="text-green-800">All meal slots assigned! Ready to generate your meal plan.</span>
+                  ) : percentage > 0 ? (
+                    <span className="text-amber-800">
+                      {assigned} of {total} meals assigned ({percentage.toFixed(0)}%). 
+                      AI will generate recipes for remaining {total - assigned} slots.
+                    </span>
+                  ) : (
+                    <span className="text-gray-700">
+                      No meals assigned yet. AI will generate all {total} recipes, or start assigning your own recipes above.
+                    </span>
+                  )}
+                </AlertDescription>
+              </div>
+            </Alert>
+          </TooltipProvider>
+        );
+      })()}
 
       {/* Selected Recipes Summary */}
       <Card>

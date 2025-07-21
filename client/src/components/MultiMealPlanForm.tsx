@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, X, Users, Baby, Heart, Chef } from 'lucide-react';
+import { Plus, X, Users, Baby, Heart, ChefHat } from 'lucide-react';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { isUnauthorizedError } from '@/lib/utils';
 
@@ -80,7 +80,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
     }
   ]);
 
-  const { data: householdMembers } = useQuery({
+  const { data: householdMembers = [] } = useQuery({
     queryKey: ['/api/household-members']
   });
 
@@ -218,7 +218,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
     generateMultiMealPlanMutation.mutate(requestData);
   };
 
-  if (!householdMembers || householdMembers.length === 0) {
+  if (!householdMembers || (Array.isArray(householdMembers) && householdMembers.length === 0)) {
     return (
       <Card>
         <CardHeader>
@@ -317,7 +317,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
                   <div>
                     <Label className="mb-2 block">Household Members</Label>
                     <div className="grid grid-cols-2 gap-2">
-                      {householdMembers.map((member: any) => (
+                      {Array.isArray(householdMembers) && householdMembers.map((member: any) => (
                         <div key={member.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`member-${plan.id}-${member.id}`}
@@ -377,7 +377,7 @@ export function MultiMealPlanForm({ onSuccess }: MultiMealPlanFormProps) {
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Chef className="h-5 w-5 text-amber-600" />
+                        <ChefHat className="h-5 w-5 text-amber-600" />
                         <div>
                           <h4 className="font-medium text-amber-900">Include Your Existing Recipes</h4>
                           <p className="text-sm text-amber-700">Mix AI-generated meals with recipes from your library</p>

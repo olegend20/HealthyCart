@@ -314,7 +314,7 @@ export default function CleanHome() {
                         </Link>
                       </Button>
                       <Button 
-                        onClick={() => setShowMealPlanForm(true)}
+                        onClick={() => setShowMealPlanModal(true)}
                         variant="outline"
                         className="flex-1"
                       >
@@ -340,7 +340,7 @@ export default function CleanHome() {
                       Create your first meal plan to get personalized recipes and grocery lists
                     </p>
                     <Button 
-                      onClick={() => setShowMealPlanForm(true)}
+                      onClick={() => setShowMealPlanModal(true)}
                       className="bg-primary hover:bg-primary/90"
                     >
                       <Plus className="h-4 w-4 mr-2" />
