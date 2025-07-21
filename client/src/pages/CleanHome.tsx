@@ -198,10 +198,12 @@ export default function CleanHome() {
                 <div className="flex flex-wrap gap-3">
                   <Button 
                     className="bg-white text-primary font-semibold hover:bg-gray-100"
-                    onClick={() => setShowMealPlanForm(true)}
+                    asChild
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Meal Plan
+                    <Link href="/meal-plan-generator">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Meal Plan
+                    </Link>
                   </Button>
                   <Button 
                     className="bg-white/10 text-white border border-white/20 hover:bg-white/20"
