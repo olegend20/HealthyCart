@@ -125,6 +125,7 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   unit: varchar("unit"),
   category: varchar("category"), // 'produce', 'meat', 'dairy', etc.
   optional: boolean("optional").default(false),
+  notes: text("notes"), // Additional notes for the ingredient
 });
 
 // User recipes (tracks which recipes belong to which users)
@@ -140,10 +141,12 @@ export const meals = pgTable("meals", {
   id: serial("id").primaryKey(),
   mealPlanId: integer("meal_plan_id").references(() => mealPlans.id, { onDelete: "cascade" }).notNull(),
   recipeId: integer("recipe_id").references(() => recipes.id).notNull(),
+  name: varchar("name").notNull(), // Recipe name for easy display
   date: timestamp("date").notNull(),
   mealType: varchar("meal_type").notNull(), // 'breakfast', 'lunch', 'dinner', 'snack'
   servings: integer("servings").notNull(),
   status: varchar("status").default("planned"), // 'planned', 'approved', 'rejected'
+  source: varchar("source").default("ai-generated"), // 'ai-generated', 'user-selected'
   estimatedCost: decimal("estimated_cost", { precision: 10, scale: 2 }),
   actualCost: decimal("actual_cost", { precision: 10, scale: 2 }),
   rating: integer("rating"), // 1-5 stars
@@ -154,6 +157,7 @@ export const meals = pgTable("meals", {
 // Grocery lists
 export const groceryLists = pgTable("grocery_lists", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   mealPlanId: integer("meal_plan_id").references(() => mealPlans.id, { onDelete: "cascade" }).notNull(),
   name: varchar("name").notNull(),
   store: varchar("store"),
@@ -168,7 +172,7 @@ export const groceryListItems = pgTable("grocery_list_items", {
   id: serial("id").primaryKey(),
   groceryListId: integer("grocery_list_id").references(() => groceryLists.id, { onDelete: "cascade" }).notNull(),
   name: varchar("name").notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }),
+  amount: varchar("amount"), // Changed to varchar to support complex amounts like "1-2 cups"
   unit: varchar("unit"),
   category: varchar("category"),
   estimatedPrice: decimal("estimated_price", { precision: 10, scale: 2 }),

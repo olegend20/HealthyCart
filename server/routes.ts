@@ -7,6 +7,7 @@ import { authService } from "./auth";
 import { generateCompleteMealPlan, type MealPlanGenerationRequest } from "./services/mealPlanGeneratorFixed";
 import { generateMultiMealPlan, type MultiMealPlanRequest } from "./services/multiMealPlanGenerator";
 import { generateEnhancedMultiMealPlan, type MultiMealPlanRequest as EnhancedMultiMealPlanRequest } from "./services/enhancedMultiMealPlanGenerator";
+import { generateMixedMealPlan, type MixedMealPlanRequest } from "./services/mixedMealPlanGenerator";
 import { generateCustomizedRecipe, type RecipeCustomizationRequest } from "./services/recipeCustomizer";
 import { replaceRecipeWithAI, type RecipeReplacementRequest } from "./services/recipeReplacement";
 import { 
@@ -540,6 +541,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating meal plan:", error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : "Failed to generate meal plan" 
+      });
+    }
+  });
+
+  // Mixed meal plan generation with user-selected recipes
+  app.post('/api/meal-plans/generate-mixed', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      const { 
+        name, 
+        duration, 
+        budget, 
+        goals, 
+        mealTypes, 
+        startDate, 
+        selectedRecipes, 
+        generateRemaining = true 
+      } = req.body;
+      
+      if (!name || !duration || !mealTypes || !startDate) {
+        return res.status(400).json({ 
+          message: "Missing required fields: name, duration, mealTypes, and startDate are required" 
+        });
+      }
+
+      const request: MixedMealPlanRequest = {
+        userId,
+        name,
+        duration: parseInt(duration),
+        budget: budget ? parseFloat(budget) : undefined,
+        goals: goals || [],
+        mealTypes: Array.isArray(mealTypes) ? mealTypes : [mealTypes],
+        startDate: new Date(startDate),
+        selectedRecipes: selectedRecipes || [],
+        generateRemaining
+      };
+      
+      console.log("Mixed meal plan generation request:", {
+        userId,
+        name,
+        duration: request.duration,
+        selectedRecipes: request.selectedRecipes?.length || 0,
+        generateRemaining
+      });
+      
+      const response = await generateMixedMealPlan(request);
+      res.json(response);
+    } catch (error) {
+      console.error("Error generating mixed meal plan:", error);
+      res.status(500).json({ 
+        message: "Failed to generate mixed meal plan", 
+        error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
   });

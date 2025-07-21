@@ -78,16 +78,19 @@ export interface IStorage {
   // Recipes
   getRecipes(limit?: number, offset?: number): Promise<Recipe[]>;
   getRecipe(id: number): Promise<Recipe | undefined>;
+  getRecipeById(id: number): Promise<Recipe | undefined>;
   getRecipeWithIngredients(id: number): Promise<(Recipe & { ingredients: RecipeIngredient[] }) | undefined>;
   createRecipe(recipe: InsertRecipe): Promise<Recipe>;
   searchRecipes(query: string, tags?: string[]): Promise<Recipe[]>;
   
   // Recipe ingredients
   getRecipeIngredients(recipeId: number): Promise<RecipeIngredient[]>;
+  getRecipeIngredientsByRecipeId(recipeId: number): Promise<RecipeIngredient[]>;
   createRecipeIngredient(ingredient: InsertRecipeIngredient): Promise<RecipeIngredient>;
   
   // Meals
   getMeals(mealPlanId: number): Promise<(Meal & { recipe: Recipe })[]>;
+  getMealsByMealPlanId(mealPlanId: number): Promise<Meal[]>;
   createMeal(meal: InsertMeal): Promise<Meal>;
   updateMeal(id: number, updates: Partial<Meal>): Promise<Meal>;
   deleteMeal(id: number): Promise<void>;
@@ -294,6 +297,10 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getRecipeById(id: number): Promise<Recipe | undefined> {
+    return this.getRecipe(id);
+  }
+
   async getRecipeWithIngredients(id: number): Promise<(Recipe & { ingredients: RecipeIngredient[] }) | undefined> {
     const recipe = await this.getRecipe(id);
     if (!recipe) return undefined;
@@ -370,6 +377,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(recipeIngredients.recipeId, recipeId));
   }
 
+  async getRecipeIngredientsByRecipeId(recipeId: number): Promise<RecipeIngredient[]> {
+    return this.getRecipeIngredients(recipeId);
+  }
+
   async createRecipeIngredient(ingredient: InsertRecipeIngredient): Promise<RecipeIngredient> {
     const [result] = await db.insert(recipeIngredients).values(ingredient).returning();
     return result;
@@ -395,6 +406,14 @@ export class DatabaseStorage implements IStorage {
       })
       .from(meals)
       .innerJoin(recipes, eq(meals.recipeId, recipes.id))
+      .where(eq(meals.mealPlanId, mealPlanId))
+      .orderBy(meals.date);
+  }
+
+  async getMealsByMealPlanId(mealPlanId: number): Promise<Meal[]> {
+    return await db
+      .select()
+      .from(meals)
       .where(eq(meals.mealPlanId, mealPlanId))
       .orderBy(meals.date);
   }

@@ -64,7 +64,12 @@ export default function MealPlanModal({ isOpen, onClose }: MealPlanModalProps) {
 
   const generateMealPlanMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/meal-plans/generate", data);
+      // Use mixed meal plan endpoint if recipes are selected, otherwise use regular endpoint
+      const endpoint = data.selectedRecipes && data.selectedRecipes.length > 0 
+        ? "/api/meal-plans/generate-mixed" 
+        : "/api/meal-plans/generate";
+      
+      const response = await apiRequest("POST", endpoint, data);
       return response.json();
     },
     onSuccess: (data) => {
