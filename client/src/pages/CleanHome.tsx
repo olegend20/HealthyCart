@@ -135,40 +135,7 @@ export default function CleanHome() {
   const currentMealPlan = activeGroups[0];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Utensils className="h-8 w-8 text-primary mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">HealthyCart</h1>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-primary font-medium">
-                Meal Plans
-              </Link>
-              <Link href="/recipes" className="text-gray-500 hover:text-gray-700">
-                Recipes
-              </Link>
-              <Link href="/grocery-lists" className="text-gray-500 hover:text-gray-700">
-                Grocery Lists
-              </Link>
-              <Link href="/household-setup" className="text-gray-500 hover:text-gray-700">
-                Profile
-              </Link>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <UserProfile />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
           <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 text-white">
@@ -417,13 +384,12 @@ export default function CleanHome() {
             </Card>
           </div>
         </div>
-      </main>
 
-      {/* Meal Plan Modal */}
-      <MealPlanModal 
-        isOpen={showMealPlanModal}
-        onClose={() => setShowMealPlanModal(false)}
-      />
-    </div>
+        {/* Meal Plan Modal */}
+        <MealPlanModal 
+          isOpen={showMealPlanModal}
+          onClose={() => setShowMealPlanModal(false)}
+        />
+      </div>
   );
 }

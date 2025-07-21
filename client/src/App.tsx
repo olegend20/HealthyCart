@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import AuthForm from "@/components/AuthForm";
+import Layout from "@/components/Layout";
 import CleanHome from "@/pages/CleanHome";
 import HouseholdSetup from "@/pages/HouseholdSetup";
 import MealPlanGenerator from "@/pages/MealPlanGenerator";
@@ -25,7 +26,7 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={AuthForm} />
       ) : (
-        <>
+        <Layout>
           <Route path="/" component={CleanHome} />
           <Route path="/household-setup" component={HouseholdSetup} />
           <Route path="/meal-plan-generator" component={MealPlanGenerator} />
@@ -37,7 +38,7 @@ function Router() {
           <Route path="/recipes" component={RecipeLibrary} />
           <Route path="/recipe/:id/customize" component={RecipeCustomizer} />
           <Route path="/grocery-lists" component={() => <div className="p-8"><h1 className="text-2xl font-bold">Grocery Lists</h1><p>Grocery list management coming soon!</p></div>} />
-        </>
+        </Layout>
       )}
       <Route component={NotFound} />
     </Switch>

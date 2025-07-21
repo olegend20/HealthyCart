@@ -253,27 +253,7 @@ export default function MealPlanGenerator() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/">
-                  <ArrowLeft className="h-5 w-5" />
-                </Link>
-              </Button>
-              <div className="flex items-center">
-                <Bot className="h-8 w-8 text-primary mr-3" />
-                <h1 className="text-xl font-bold text-gray-900">AI Meal Plan Generator</h1>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your Perfect Meal Plan</h2>
           <p className="text-gray-600">
@@ -594,20 +574,19 @@ export default function MealPlanGenerator() {
             />
           </div>
         )}
-      </main>
 
-      {/* Recipe Selection Modal */}
-      <RecipeSelectionModal
-        isOpen={showRecipeSelection}
-        onClose={() => {
-          setShowRecipeSelection(false);
-          setCurrentStep('form');
-        }}
-        onSelectRecipes={handleRecipeSelection}
-        mealPlanDuration={formData.duration}
-        selectedMealTypes={formData.mealTypes}
-        startDate={formData.startDate}
-      />
-    </div>
+        {/* Recipe Selection Modal */}
+        <RecipeSelectionModal
+          isOpen={showRecipeSelection}
+          onClose={() => {
+            setShowRecipeSelection(false);
+            setCurrentStep('form');
+          }}
+          onSelectRecipes={handleRecipeSelection}
+          mealPlanDuration={formData.duration}
+          selectedMealTypes={formData.mealTypes}
+          startDate={formData.startDate}
+        />
+      </div>
   );
 }

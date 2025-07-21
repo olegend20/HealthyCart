@@ -328,23 +328,22 @@ export default function RecipeLibrary() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Recipe Library</h1>
-            <p className="text-gray-600 mt-1">
-              Discover and customize recipes from your meal plans
-            </p>
-          </div>
-          <Link
-            to="/"
-            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-          >
-            Back to Home
-          </Link>
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Recipe Library</h1>
+          <p className="text-gray-600 mt-1">
+            Discover and customize recipes from your meal plans
+          </p>
         </div>
+        <Link
+          to="/"
+          className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+        >
+          Back to Home
+        </Link>
+      </div>
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -450,9 +449,8 @@ export default function RecipeLibrary() {
             </div>
           </div>
         )}
-      </div>
 
-      {selectedRecipe && <RecipeModal />}
-    </div>
+        {selectedRecipe && <RecipeModal />}
+      </div>
   );
 }
