@@ -513,7 +513,7 @@ export default function MealPlanDetails() {
                       </div>
                       <span className="text-sm text-gray-600">
                         ${typeof item.estimatedPrice === 'string' 
-                          ? parseFloat(item.estimatedPrice.replace('$', '')).toFixed(2) || '0.00' 
+                          ? parseFloat((item.estimatedPrice as string).replace('$', '')).toFixed(2) || '0.00' 
                           : (item.estimatedPrice || 0).toFixed(2)
                         }
                       </span>

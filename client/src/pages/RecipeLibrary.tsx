@@ -68,7 +68,7 @@ export default function RecipeLibrary() {
     }
   });
 
-  const allTags = Array.from(new Set(recipes.flatMap((recipe: Recipe) => recipe.tags || [])));
+  const allTags = Array.from(new Set(recipes.flatMap((recipe: Recipe) => recipe.tags || []))) as string[];
 
   const filteredRecipes = searchRecipesMutation.data || recipes;
 
@@ -337,12 +337,7 @@ export default function RecipeLibrary() {
             Discover and customize recipes from your meal plans
           </p>
         </div>
-        <Link
-          to="/"
-          className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-        >
-          Back to Home
-        </Link>
+
       </div>
 
         {/* Search and Filters */}
@@ -370,7 +365,7 @@ export default function RecipeLibrary() {
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by tags:</h3>
             <div className="flex flex-wrap gap-2">
-              {allTags.slice(0, 10).map((tag) => (
+              {allTags.slice(0, 10).map((tag: string) => (
                 <button
                   key={tag}
                   onClick={() => handleTagToggle(tag)}
@@ -451,6 +446,6 @@ export default function RecipeLibrary() {
         )}
 
         {selectedRecipe && <RecipeModal />}
-      </div>
+    </div>
   );
 }
